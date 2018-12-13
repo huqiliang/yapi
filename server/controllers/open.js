@@ -78,7 +78,11 @@ class openController extends baseController {
     let dataSync = ctx.params.merge;
     let token = ctx.params.token;
     if (!type || !importDataModule[type]) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, '不存在的导入方式'));
+      return (ctx.body = yapi.commons.resReturn(
+        null,
+        40022,
+        '不存在的导入方式'
+      ));
     }
 
     if (!content) {
@@ -116,7 +120,11 @@ class openController extends baseController {
     );
 
     if (errorMessage.length > 0) {
-      return (ctx.body = yapi.commons.resReturn(null, 404, errorMessage.join('\n')));
+      return (ctx.body = yapi.commons.resReturn(
+        null,
+        404,
+        errorMessage.join('\n')
+      ));
     }
     ctx.body = yapi.commons.resReturn(null, 0, successMessage);
   }
@@ -127,7 +135,7 @@ class openController extends baseController {
 
   handleValue(val, global) {
     let globalValue = ArrayToObject(global);
-    let context = Object.assign({}, {global: globalValue}, this.records);
+    let context = Object.assign({}, { global: globalValue }, this.records);
     return handleParamsValue(val, context);
   }
 
@@ -143,6 +151,9 @@ class openController extends baseController {
     return result;
   }
   async runAutoTest(ctx) {
+    console.log('====================================');
+    console.log(this.$tokenAuth);
+    console.log('====================================');
     if (!this.$tokenAuth) {
       return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
     }
@@ -178,8 +189,14 @@ class openController extends baseController {
         return key.project_id == item.project_id;
       });
 
-      item.case_env = curEnvItem ? curEnvItem.curEnv || item.case_env : item.case_env;
-      item.req_headers = this.handleReqHeader(item.req_headers, projectEvn.env, item.case_env);
+      item.case_env = curEnvItem
+        ? curEnvItem.curEnv || item.case_env
+        : item.case_env;
+      item.req_headers = this.handleReqHeader(
+        item.req_headers,
+        projectEvn.env,
+        item.case_env
+      );
       item.pre_script = projectData.pre_script;
       item.after_script = projectData.after_script;
       item.env = projectEvn.env;
@@ -208,8 +225,7 @@ class openController extends baseController {
         len++;
         if (item.code === 0) {
           successNum++;
-        }
-        else {
+        } else {
           failedNum++;
         }
       });
@@ -255,7 +271,7 @@ class openController extends baseController {
       });
     }
     let mode = ctx.params.mode || 'html';
-    if(ctx.params.download === true) {
+    if (ctx.params.download === true) {
       ctx.set('Content-Disposition', `attachment; filename=test.${mode}`);
     }
     if (ctx.params.mode === 'json') {
@@ -264,7 +280,14 @@ class openController extends baseController {
       return (ctx.body = renderToHtml(reportsResult));
     }
   }
-
+  async runLvYunTest(ctx) {
+    if (!this.$tokenAuth) {
+      return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
+    }
+    console.log('====================================');
+    console.log('success');
+    console.log('====================================');
+  }
   async handleTest(interfaceData) {
     let requestParams = {};
     let options;
@@ -277,7 +300,11 @@ class openController extends baseController {
       validRes: []
     };
     try {
-      let data = await crossRequest(options, interfaceData.pre_script, interfaceData.after_script);
+      let data = await crossRequest(
+        options,
+        interfaceData.pre_script,
+        interfaceData.after_script
+      );
       let res = data.res;
 
       result = Object.assign(result, {
@@ -306,7 +333,12 @@ class openController extends baseController {
         }
       );
 
-      await this.handleScriptTest(interfaceData, responseData, validRes, requestParams);
+      await this.handleScriptTest(
+        interfaceData,
+        responseData,
+        validRes,
+        requestParams
+      );
       result.params = requestParams;
       if (validRes.length === 0) {
         result.code = 0;

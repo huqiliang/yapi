@@ -38,6 +38,7 @@ class baseController {
 
     let openApiRouter = [
       '/api/open/run_auto_test',
+      '/api/open/run_lvyun_test',
       '/api/open/import_data',
       '/api/interface/add',
       '/api/interface/save',
@@ -118,7 +119,7 @@ class baseController {
       return false;
     }
   }
-  
+
   async checkRegister() {
     // console.log('config', yapi.WEBCONFIG);
     if (yapi.WEBCONFIG.closeRegister) {
@@ -268,7 +269,12 @@ class baseController {
         return true;
       }
     } else if (action === 'view') {
-      if (role === 'admin' || role === 'owner' || role === 'dev' || role === 'guest') {
+      if (
+        role === 'admin' ||
+        role === 'owner' ||
+        role === 'dev' ||
+        role === 'guest'
+      ) {
         return true;
       }
     }

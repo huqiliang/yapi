@@ -567,6 +567,11 @@ let routerConfig = {
       method: 'get'
     },
     {
+      action: 'runLvYunTest',
+      path: 'run_lvyun_test',
+      method: 'get'
+    },
+    {
       action: 'importData',
       path: 'import_data',
       method: 'post'
@@ -586,7 +591,15 @@ function addPluginRouter(config) {
     throw new Error('Plugin Route path conflict, please try rename the path');
   }
   pluginsRouterPath.push(routerPath);
-  createAction(router, '/api', config.controller, config.action, routerPath, method, false);
+  createAction(
+    router,
+    '/api',
+    config.controller,
+    config.action,
+    routerPath,
+    method,
+    false
+  );
 }
 
 yapi.emitHookSync('add_router', addPluginRouter);
@@ -596,7 +609,14 @@ for (let ctrl in routerConfig) {
   actions.forEach(item => {
     let routerController = INTERFACE_CONFIG[ctrl].controller;
     let routerPath = INTERFACE_CONFIG[ctrl].prefix + item.path;
-    createAction(router, '/api', routerController, item.action, routerPath, item.method);
+    createAction(
+      router,
+      '/api',
+      routerController,
+      item.action,
+      routerPath,
+      item.method
+    );
   });
 }
 

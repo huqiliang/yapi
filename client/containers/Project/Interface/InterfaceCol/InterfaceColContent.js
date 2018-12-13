@@ -4,7 +4,18 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 //import constants from '../../../../constants/variable.js'
-import { Tooltip, Icon, Button, Row, Col, Spin, Modal, message, Select, Switch } from 'antd';
+import {
+  Tooltip,
+  Icon,
+  Button,
+  Row,
+  Col,
+  Spin,
+  Modal,
+  message,
+  Select,
+  Switch
+} from 'antd';
 import {
   fetchInterfaceColList,
   fetchCaseList,
@@ -29,7 +40,11 @@ const {
   handleCurrDomain,
   checkNameIsExistInArray
 } = require('common/postmanLib.js');
-const { handleParamsValue, json_parse, ArrayToObject } = require('common/utils.js');
+const {
+  handleParamsValue,
+  json_parse,
+  ArrayToObject
+} = require('common/utils.js');
 import CaseEnv from 'client/components/CaseEnv';
 import Label from '../../../../components/Label/Label.js';
 
@@ -110,6 +125,7 @@ class InterfaceColContent extends Component {
       curScript: '',
       enableScript: false,
       autoVisible: false,
+      autoLvyunVisible: false,
       mode: 'html',
       email: false,
       download: false,
@@ -121,13 +137,17 @@ class InterfaceColContent extends Component {
   }
 
   async componentWillMount() {
-    const result = await this.props.fetchInterfaceColList(this.props.match.params.id);
+    const result = await this.props.fetchInterfaceColList(
+      this.props.match.params.id
+    );
     await this.props.getToken(this.props.match.params.id);
     let { currColId } = this.props;
     const params = this.props.match.params;
     const { actionId } = params;
     this.currColId = currColId = +actionId || result.payload.data.data[0]._id;
-    this.props.history.push('/project/' + params.id + '/interface/col/' + currColId);
+    this.props.history.push(
+      '/project/' + params.id + '/interface/col/' + currColId
+    );
     if (currColId && currColId != 0) {
       let result = await this.props.fetchCaseList(currColId);
 
@@ -203,8 +223,14 @@ class InterfaceColContent extends Component {
         item.id = item._id;
         item._test_status = item.test_status;
         item.case_env =
-          item.project_id === project_id ? currColEnv || item.case_env : item.case_env;
-        item.req_headers = that.handleReqHeader(item.project_id, item.req_headers, item.case_env);
+          item.project_id === project_id
+            ? currColEnv || item.case_env
+            : item.case_env;
+        item.req_headers = that.handleReqHeader(
+          item.project_id,
+          item.req_headers,
+          item.case_env
+        );
         return item;
       });
     });
@@ -281,7 +307,11 @@ class InterfaceColContent extends Component {
     };
 
     try {
-      let data = await crossRequest(options, interfaceData.pre_script, interfaceData.after_script);
+      let data = await crossRequest(
+        options,
+        interfaceData.pre_script,
+        interfaceData.after_script
+      );
       let res = (data.res.body = json_parse(data.res.body));
       result = {
         ...options,
@@ -310,7 +340,12 @@ class InterfaceColContent extends Component {
       );
 
       // 断言测试
-      await this.handleScriptTest(interfaceData, responseData, validRes, requestParams);
+      await this.handleScriptTest(
+        interfaceData,
+        responseData,
+        validRes,
+        requestParams
+      );
 
       if (validRes.length === 0) {
         result.code = 0;
@@ -341,7 +376,12 @@ class InterfaceColContent extends Component {
 
   //response, validRes
   // 断言测试
-  handleScriptTest = async (interfaceData, response, validRes, requestParams) => {
+  handleScriptTest = async (
+    interfaceData,
+    response,
+    validRes,
+    requestParams
+  ) => {
     // 是否启动断言
     if (interfaceData.enable_script !== true) {
       return null;
@@ -407,9 +447,14 @@ class InterfaceColContent extends Component {
   }
 
   async componentWillReceiveProps(nextProps) {
-    let newColId = !isNaN(nextProps.match.params.actionId) ? +nextProps.match.params.actionId : 0;
+    let newColId = !isNaN(nextProps.match.params.actionId)
+      ? +nextProps.match.params.actionId
+      : 0;
 
-    if ((newColId && this.currColId && newColId !== this.currColId) || nextProps.isRander) {
+    if (
+      (newColId && this.currColId && newColId !== this.currColId) ||
+      nextProps.isRander
+    ) {
       this.currColId = newColId;
       this.props.setColData({
         currColId: +newColId,
@@ -501,7 +546,13 @@ class InterfaceColContent extends Component {
   autoTests = () => {
     this.setState({ autoVisible: true, currColEnvObj: {}, collapseKey: '' });
   };
-
+  autoLvYunTests = () => {
+    this.setState({
+      autoLvyunVisible: true,
+      currColEnvObj: {},
+      collapseKey: ''
+    });
+  };
   handleAuto = () => {
     this.setState({
       autoVisible: false,
@@ -557,7 +608,14 @@ class InterfaceColContent extends Component {
             (text, { rowData }) => {
               let record = rowData;
               return (
-                <Link to={'/project/' + currProjectId + '/interface/case/' + record._id}>
+                <Link
+                  to={
+                    '/project/' +
+                    currProjectId +
+                    '/interface/case/' +
+                    record._id
+                  }
+                >
                   {record.casename.length > 23
                     ? record.casename.substr(0, 20) + '...'
                     : record.casename}
@@ -699,8 +757,14 @@ class InterfaceColContent extends Component {
               let record = rowData;
               return (
                 <Tooltip title="跳转到对应接口">
-                  <Link to={`/project/${record.project_id}/interface/api/${record.interface_id}`}>
-                    {record.path.length > 23 ? record.path + '...' : record.path}
+                  <Link
+                    to={`/project/${record.project_id}/interface/api/${
+                      record.interface_id
+                    }`}
+                  >
+                    {record.path.length > 23
+                      ? record.path + '...'
+                      : record.path}
                   </Link>
                 </Tooltip>
               );
@@ -724,9 +788,15 @@ class InterfaceColContent extends Component {
                 if (!this.reports[rowData.id]) {
                   return null;
                 }
-                return <Button onClick={() => this.openReport(rowData.id)}>测试报告</Button>;
+                return (
+                  <Button onClick={() => this.openReport(rowData.id)}>
+                    测试报告
+                  </Button>
+                );
               };
-              return <div className="interface-col-table-action">{reportFun()}</div>;
+              return (
+                <div className="interface-col-table-action">{reportFun()}</div>
+              );
             }
           ]
         }
@@ -742,9 +812,10 @@ class InterfaceColContent extends Component {
       }
     };
     const resolvedColumns = resolve.columnChildren({ columns });
-    const resolvedRows = resolve.resolve({ columns: resolvedColumns, method: resolve.nested })(
-      rows
-    );
+    const resolvedRows = resolve.resolve({
+      columns: resolvedColumns,
+      method: resolve.nested
+    })(rows);
 
     const localUrl =
       location.protocol +
@@ -752,11 +823,11 @@ class InterfaceColContent extends Component {
       location.hostname +
       (location.port !== '' ? ':' + location.port : '');
     let currColEnvObj = this.handleColEnvObj(this.state.currColEnvObj);
-    const autoTestsUrl = `/api/open/run_auto_test?id=${this.props.currColId}&token=${
-      this.props.token
-    }${currColEnvObj ? currColEnvObj : ''}&mode=${this.state.mode}&email=${
-      this.state.email
-    }&download=${this.state.download}`;
+    const autoTestsUrl = `/api/open/run_auto_test?id=${
+      this.props.currColId
+    }&token=${this.props.token}${currColEnvObj ? currColEnvObj : ''}&mode=${
+      this.state.mode
+    }&email=${this.state.email}&download=${this.state.download}`;
 
     let col_name = '';
     let col_desc = '';
@@ -780,7 +851,8 @@ class InterfaceColContent extends Component {
                 margin: '8px 20px 16px 0px'
               }}
             >
-              测试集合&nbsp;<a
+              测试集合&nbsp;
+              <a
                 target="_blank"
                 rel="noopener noreferrer"
                 href="https://yapi.ymfe.org/documents/case.html"
@@ -801,48 +873,59 @@ class InterfaceColContent extends Component {
             />
           </Col>
           <Col span={7}>
-            {this.state.hasPlugin ? (
-              <div
-                style={{
-                  float: 'right',
-                  paddingTop: '8px'
-                }}
-              >
-                {this.props.curProjectRole !== 'guest' && (
-                  <Tooltip title="在 YApi 服务端跑自动化测试，测试环境不能为私有网络，请确保 YApi 服务器可以访问到自动化测试环境domain">
-                    <Button
-                      style={{
-                        marginRight: '8px'
-                      }}
-                      onClick={this.autoTests}
-                    >
-                      服务端测试
-                    </Button>
-                  </Tooltip>
-                )}
-                <Button type="primary" onClick={this.executeTests}>
-                  开始测试
-                </Button>
-              </div>
-            ) : (
-              <Tooltip title="请安装 cross-request Chrome 插件">
-                <Button
-                  disabled
-                  type="primary"
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                paddingTop: '8px'
+              }}
+            >
+              {this.state.hasPlugin ? (
+                <div
                   style={{
-                    float: 'right',
-                    marginTop: '8px'
+                    display: 'flex',
+                    justifyContent: 'flex-end'
                   }}
                 >
-                  开始测试
-                </Button>
-              </Tooltip>
-            )}
+                  {this.props.curProjectRole !== 'guest' && (
+                    <Tooltip title="在 YApi 服务端跑自动化测试，测试环境不能为私有网络，请确保 YApi 服务器可以访问到自动化测试环境domain">
+                      <Button
+                        style={{
+                          marginRight: '8px'
+                        }}
+                        onClick={this.autoTests}
+                      >
+                        服务端测试
+                      </Button>
+                    </Tooltip>
+                  )}
+                  <Button type="primary" onClick={this.executeTests}>
+                    开始测试
+                  </Button>
+                </div>
+              ) : (
+                <Tooltip title="请安装 cross-request Chrome 插件">
+                  <Button disabled type="primary">
+                    开始测试
+                  </Button>
+                </Tooltip>
+              )}
+              <Button
+                style={{ marginLeft: '8px' }}
+                type="primary"
+                onClick={this.autoLvYunTests}
+              >
+                绿云测试
+              </Button>
+            </div>
           </Col>
         </Row>
 
         <div className="component-label-wrapper">
-          <Label onChange={val => this.handleChangeInterfaceCol(val, col_name)} desc={col_desc} />
+          <Label
+            onChange={val => this.handleChangeInterfaceCol(val, col_name)}
+            desc={col_desc}
+          />
         </div>
 
         <Table.Provider
@@ -932,7 +1015,12 @@ class InterfaceColContent extends Component {
                 />
               </Col>
             </Row>
-            <Row type="flex" justify="space-around" className="row" align="middle">
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
               <Col span={3} className="label">
                 输出格式：
               </Col>
@@ -947,7 +1035,12 @@ class InterfaceColContent extends Component {
                 </Select>
               </Col>
             </Row>
-            <Row type="flex" justify="space-around" className="row" align="middle">
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
               <Col span={3} className="label">
                 邮件通知
                 <Tooltip title={'测试不通过时，会给项目组成员发送邮件'}>
@@ -969,7 +1062,12 @@ class InterfaceColContent extends Component {
                 />
               </Col>
             </Row>
-            <Row type="flex" justify="space-around" className="row" align="middle">
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
               <Col span={3} className="label">
                 下载数据
                 <Tooltip title={'开启后，测试数据将被下载到本地'}>
@@ -991,24 +1089,126 @@ class InterfaceColContent extends Component {
                 />
               </Col>
             </Row>
-            <Row type="flex" justify="space-around" className="row" align="middle">
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
               <Col span={21} className="autoTestUrl">
-                <a 
+                <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={localUrl + autoTestsUrl} >
+                  href={localUrl + autoTestsUrl}
+                >
                   {autoTestsUrl}
                 </a>
               </Col>
               <Col span={3}>
-                <Button className="copy-btn" onClick={() => this.copyUrl(localUrl + autoTestsUrl)}>
+                <Button
+                  className="copy-btn"
+                  onClick={() => this.copyUrl(localUrl + autoTestsUrl)}
+                >
                   复制
                 </Button>
               </Col>
             </Row>
             <div className="autoTestMsg">
-              注：访问该URL，可以测试所有用例，请确保YApi服务器可以访问到环境配置的 domain
+              注：访问该URL，可以测试所有用例，请确保YApi服务器可以访问到环境配置的
+              domain
             </div>
+          </Modal>
+        )}
+        {this.state.autoLvyunVisible && (
+          <Modal
+            title="绿云自动化脚本测试"
+            width="780px"
+            style={{
+              minHeight: '500px'
+            }}
+            visible={this.state.autoLvyunVisible}
+            onCancel={() => {
+              this.setState({
+                autoLvyunVisible: false,
+                email: false,
+                download: false,
+                mode: 'html',
+                currColEnvObj: {},
+                collapseKey: ''
+              });
+            }}
+            className="autoTestsModal"
+            footer={null}
+          >
+            <Row type="flex" justify="space-around" className="row" align="top">
+              <Col span={3} className="label" style={{ paddingTop: '16px' }}>
+                选择环境
+                <Tooltip title="默认使用测试用例选择的环境">
+                  <Icon type="question-circle-o" />
+                </Tooltip>
+                &nbsp;：
+              </Col>
+              <Col span={21}>
+                <CaseEnv
+                  envList={this.props.envList}
+                  currProjectEnvChange={this.currProjectEnvChange}
+                  envValue={this.state.currColEnvObj}
+                  collapseKey={this.state.collapseKey}
+                  changeClose={this.changeCollapseClose}
+                />
+              </Col>
+            </Row>
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
+              <Col span={3} className="label">
+                邮件通知
+                <Tooltip title={'测试不通过时，会给项目组成员发送邮件'}>
+                  <Icon
+                    type="question-circle-o"
+                    style={{
+                      width: '10px'
+                    }}
+                  />
+                </Tooltip>
+                &nbsp;：
+              </Col>
+              <Col span={21}>
+                <Switch
+                  checked={this.state.email}
+                  checkedChildren="开"
+                  unCheckedChildren="关"
+                  onChange={this.emailChange}
+                />
+              </Col>
+            </Row>
+            <Row
+              type="flex"
+              justify="space-around"
+              className="row"
+              align="middle"
+            >
+              <Col span={21} className="autoTestUrl">
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={localUrl + autoTestsUrl}
+                >
+                  {autoTestsUrl}
+                </a>
+              </Col>
+              <Col span={3}>
+                <Button
+                  className="copy-btn"
+                  onClick={() => this.copyUrl(localUrl + autoTestsUrl)}
+                >
+                  复制
+                </Button>
+              </Col>
+            </Row>
           </Modal>
         )}
       </div>
