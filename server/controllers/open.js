@@ -7,6 +7,7 @@ const followModel = require('../models/follow.js');
 const userModel = require('../models/user.js');
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
+const shell = require('shelljs');
 const {
   handleParams,
   crossRequest,
@@ -284,9 +285,15 @@ class openController extends baseController {
     if (!this.$tokenAuth) {
       return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
     }
-    console.log('====================================');
-    console.log('success');
-    console.log('====================================');
+    shell.exec('python /Users/huqiliang/Documents/fork/yapi/test.py', function(
+      code,
+      stdout,
+      stderr
+    ) {
+      console.log('Exit code:', code);
+      console.log('Program output:', stdout);
+      console.log('Program stderr:', stderr);
+    });
   }
   async handleTest(interfaceData) {
     let requestParams = {};

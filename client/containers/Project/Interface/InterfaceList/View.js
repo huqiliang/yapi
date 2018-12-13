@@ -57,7 +57,8 @@ class View extends Component {
               </span>
             ) : (
               <span>
-                <Icon type="file" className="query-icon" />文件
+                <Icon type="file" className="query-icon" />
+                文件
               </span>
             );
           }
@@ -102,7 +103,10 @@ class View extends Component {
       }
 
       return (
-        <div style={{ display: dataSource.length ? '' : 'none' }} className="colBody">
+        <div
+          style={{ display: dataSource.length ? '' : 'none' }}
+          className="colBody"
+        >
           <Table
             bordered
             size="small"
@@ -122,14 +126,23 @@ class View extends Component {
         return (
           <div className="colBody">
             {/* <div id="vres_body_json" style={{ minHeight: h * 16 + 100 }}></div> */}
-            <AceEditor data={res_body} readOnly={true} style={{ minHeight: 600 }} />
+            <AceEditor
+              data={res_body}
+              readOnly={true}
+              style={{ minHeight: 600 }}
+            />
           </div>
         );
       }
     } else if (res_body_type === 'raw') {
       return (
         <div className="colBody">
-          <AceEditor data={res_body} readOnly={true} mode="text" style={{ minHeight: 300 }} />
+          <AceEditor
+            data={res_body}
+            readOnly={true}
+            mode="text"
+            style={{ minHeight: 300 }}
+          />
         </div>
       );
     }
@@ -201,7 +214,13 @@ class View extends Component {
     }
 
     return (
-      <Table bordered size="small" pagination={false} columns={columns} dataSource={dataSource} />
+      <Table
+        bordered
+        size="small"
+        pagination={false}
+        columns={columns}
+        dataSource={dataSource}
+      />
     );
   }
 
@@ -255,7 +274,10 @@ class View extends Component {
 
   render() {
     const dataSource = [];
-    if (this.props.curData.req_headers && this.props.curData.req_headers.length) {
+    if (
+      this.props.curData.req_headers &&
+      this.props.curData.req_headers.length
+    ) {
       this.props.curData.req_headers.map((item, i) => {
         dataSource.push({
           key: i,
@@ -344,7 +366,9 @@ class View extends Component {
     ];
     let status = {
       undone: '未完成',
-      done: '已完成'
+      done: '已完成',
+      testRefuse: '测试未通过',
+      testPass: '测试通过'
     };
 
     let bodyShow =
@@ -361,7 +385,9 @@ class View extends Component {
 
     let methodColor =
       variable.METHOD_COLOR[
-        this.props.curData.method ? this.props.curData.method.toLowerCase() : 'get'
+        this.props.curData.method
+          ? this.props.curData.method.toLowerCase()
+          : 'get'
       ];
 
     // statusColor = statusColor[this.props.curData.status?this.props.curData.status.toLowerCase():"undone"];
@@ -409,17 +435,16 @@ class View extends Component {
             </Col>
             <Col span={8}>{formatTime(up_time)}</Col>
           </Row>
-          {safeArray(tag) &&
-            safeArray(tag).length > 0 && (
-              <Row className="row remark">
-                <Col span={4} className="colKey">
-                  Tag ：
-                </Col>
-                <Col span={18} className="colValue">
-                  {tag.join(' , ')}
-                </Col>
-              </Row>
-            )}
+          {safeArray(tag) && safeArray(tag).length > 0 && (
+            <Row className="row remark">
+              <Col span={4} className="colKey">
+                Tag ：
+              </Col>
+              <Col span={18} className="colValue">
+                {tag.join(' , ')}
+              </Col>
+            </Row>
+          )}
           <Row className="row">
             <Col span={4} className="colKey">
               接口路径：
@@ -431,7 +456,10 @@ class View extends Component {
               onMouseLeave={this.leaveItem}
             >
               <span
-                style={{ color: methodColor.color, backgroundColor: methodColor.bac }}
+                style={{
+                  color: methodColor.color,
+                  backgroundColor: methodColor.bac
+                }}
                 className="colValue tag-method"
               >
                 {this.props.curData.method}
@@ -445,7 +473,9 @@ class View extends Component {
                   type="copy"
                   className="interface-url-icon"
                   onClick={() => this.copyUrl(this.props.curData.path)}
-                  style={{ display: this.state.enter ? 'inline-block' : 'none' }}
+                  style={{
+                    display: this.state.enter ? 'inline-block' : 'none'
+                  }}
                 />
               </Tooltip>
             </Col>
@@ -455,7 +485,10 @@ class View extends Component {
               Mock地址：
             </Col>
             <Col span={18} className="colValue">
-              {this.flagMsg(this.props.currProject.is_mock_open, this.props.currProject.strice)}
+              {this.flagMsg(
+                this.props.currProject.is_mock_open,
+                this.props.currProject.strice
+              )}
               <span
                 className="href"
                 onClick={() =>
@@ -464,9 +497,9 @@ class View extends Component {
                       '//' +
                       location.hostname +
                       (location.port !== '' ? ':' + location.port : '') +
-                      `/mock/${this.props.currProject._id}${this.props.currProject.basepath}${
-                        this.props.curData.path
-                      }`,
+                      `/mock/${this.props.currProject._id}${
+                        this.props.currProject.basepath
+                      }${this.props.curData.path}`,
                     '_blank'
                   )
                 }
@@ -475,9 +508,9 @@ class View extends Component {
                   '//' +
                   location.hostname +
                   (location.port !== '' ? ':' + location.port : '') +
-                  `/mock/${this.props.currProject._id}${this.props.currProject.basepath}${
-                    this.props.curData.path
-                  }`}
+                  `/mock/${this.props.currProject._id}${
+                    this.props.currProject.basepath
+                  }${this.props.curData.path}`}
               </span>
             </Col>
           </Row>
@@ -501,7 +534,10 @@ class View extends Component {
             dangerouslySetInnerHTML={{ __html: this.props.curData.desc }}
           />
         )}
-        <h2 className="interface-title" style={{ display: requestShow ? '' : 'none' }}>
+        <h2
+          className="interface-title"
+          style={{ display: requestShow ? '' : 'none' }}
+        >
           请求参数
         </h2>
         {req_dataSource.length ? (
@@ -554,7 +590,10 @@ class View extends Component {
             Body:
           </h3>
           {this.props.curData.req_body_type === 'form'
-            ? this.req_body_form(this.props.curData.req_body_type, this.props.curData.req_body_form)
+            ? this.req_body_form(
+                this.props.curData.req_body_type,
+                this.props.curData.req_body_form
+              )
             : this.req_body(
                 this.props.curData.req_body_type,
                 this.props.curData.req_body_other,
