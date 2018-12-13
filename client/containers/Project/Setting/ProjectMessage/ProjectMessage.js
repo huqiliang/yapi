@@ -119,7 +119,9 @@ class ProjectMessage extends Component {
         const selectGroup = _.find(groupList, item => {
           return item._id == group_id;
         });
-
+        console.log('====================================');
+        console.log(assignValue);
+        console.log('====================================');
         updateProject(assignValue)
           .then(res => {
             if (res.payload.data.errcode == 0) {
@@ -156,7 +158,9 @@ class ProjectMessage extends Component {
     confirm({
       title: '确认删除 ' + that.props.projectMsg.name + ' 项目吗？',
       content: (
-        <div style={{ marginTop: '10px', fontSize: '13px', lineHeight: '25px' }}>
+        <div
+          style={{ marginTop: '10px', fontSize: '13px', lineHeight: '25px' }}
+        >
           <Alert
             message="警告：此操作非常危险,会删除该项目下面所有接口，并且无法恢复!"
             type="warning"
@@ -181,7 +185,9 @@ class ProjectMessage extends Component {
           that.props.delProject(that.props.projectId).then(res => {
             if (res.payload.data.errcode == 0) {
               message.success('删除成功!');
-              that.props.history.push('/group/' + that.props.projectMsg.group_id);
+              that.props.history.push(
+                '/group/' + that.props.projectMsg.group_id
+              );
             }
           });
         }
@@ -194,20 +200,24 @@ class ProjectMessage extends Component {
   // 修改项目头像的背景颜色
   changeProjectColor = e => {
     const { _id, color, icon } = this.props.projectMsg;
-    this.props.upsetProject({ id: _id, color: e.target.value || color, icon }).then(res => {
-      if (res.payload.data.errcode === 0) {
-        this.props.getProject(this.props.projectId);
-      }
-    });
+    this.props
+      .upsetProject({ id: _id, color: e.target.value || color, icon })
+      .then(res => {
+        if (res.payload.data.errcode === 0) {
+          this.props.getProject(this.props.projectId);
+        }
+      });
   };
   // 修改项目头像的图标
   changeProjectIcon = e => {
     const { _id, color, icon } = this.props.projectMsg;
-    this.props.upsetProject({ id: _id, color, icon: e.target.value || icon }).then(res => {
-      if (res.payload.data.errcode === 0) {
-        this.props.getProject(this.props.projectId);
-      }
-    });
+    this.props
+      .upsetProject({ id: _id, color, icon: e.target.value || icon })
+      .then(res => {
+        if (res.payload.data.errcode === 0) {
+          this.props.getProject(this.props.projectId);
+        }
+      });
   };
 
   // 点击“查看危险操作”按钮
@@ -219,8 +229,8 @@ class ProjectMessage extends Component {
   };
 
   async componentWillMount() {
-    await this.props.fetchGroupList();
-    await this.props.fetchGroupMsg(this.props.projectMsg.group_id);
+    //await this.props.fetchGroupList();
+    //await this.props.fetchGroupMsg(this.props.projectMsg.group_id);
   }
 
   render() {
@@ -242,7 +252,8 @@ class ProjectMessage extends Component {
       switch_notice,
       strice,
       is_json5,
-      tag
+      tag,
+      testPath
     } = projectMsg;
     initFormValues = {
       name,
@@ -253,18 +264,27 @@ class ProjectMessage extends Component {
       switch_notice,
       strice,
       is_json5,
-      tag
+      tag,
+      testPath
     };
 
     const colorArr = entries(constants.PROJECT_COLOR);
     const colorSelector = (
-      <RadioGroup onChange={this.changeProjectColor} value={projectMsg.color} className="color">
+      <RadioGroup
+        onChange={this.changeProjectColor}
+        value={projectMsg.color}
+        className="color"
+      >
         {colorArr.map((item, index) => {
           return (
             <RadioButton
               key={index}
               value={item[0]}
-              style={{ backgroundColor: item[1], color: '#fff', fontWeight: 'bold' }}
+              style={{
+                backgroundColor: item[1],
+                color: '#fff',
+                fontWeight: 'bold'
+              }}
             >
               {item[0] === projectMsg.color ? <Icon type="check" /> : null}
             </RadioButton>
@@ -273,7 +293,11 @@ class ProjectMessage extends Component {
       </RadioGroup>
     );
     const iconSelector = (
-      <RadioGroup onChange={this.changeProjectIcon} value={projectMsg.icon} className="icon">
+      <RadioGroup
+        onChange={this.changeProjectIcon}
+        value={projectMsg.icon}
+        className="icon"
+      >
         {constants.PROJECT_ICON.map(item => {
           return (
             <RadioButton key={item} value={item} style={{ fontWeight: 'bold' }}>
@@ -283,7 +307,8 @@ class ProjectMessage extends Component {
         })}
       </RadioGroup>
     );
-    const selectDisbaled = projectMsg.role === 'owner' || projectMsg.role === 'admin';
+    const selectDisbaled =
+      projectMsg.role === 'owner' || projectMsg.role === 'admin';
     return (
       <div>
         <div className="m-panel">
@@ -301,7 +326,8 @@ class ProjectMessage extends Component {
                   className="ui-logo"
                   style={{
                     backgroundColor:
-                      constants.PROJECT_COLOR[projectMsg.color] || constants.PROJECT_COLOR.blue
+                      constants.PROJECT_COLOR[projectMsg.color] ||
+                      constants.PROJECT_COLOR.blue
                   }}
                 />
               </Popover>
@@ -365,7 +391,27 @@ class ProjectMessage extends Component {
                 ]
               })(<Input />)}
             </FormItem>
-
+            <FormItem
+              {...formItemLayout}
+              label={
+                <span>
+                  测试git项目地址&nbsp;
+                  <Tooltip title="测试的项目的地址">
+                    <Icon type="question-circle-o" />
+                  </Tooltip>
+                </span>
+              }
+            >
+              {getFieldDecorator('testPath', {
+                initialValue: initFormValues.testPath,
+                rules: [
+                  {
+                    required: false,
+                    message: '请输入测试git路径! '
+                  }
+                ]
+              })(<Input />)}
+            </FormItem>
             <FormItem
               {...formItemLayout}
               label={
@@ -455,15 +501,24 @@ class ProjectMessage extends Component {
               })(
                 <RadioGroup>
                   <Radio value="private" className="radio">
-                    <Icon type="lock" />私有<br />
-                    <span className="radio-desc">只有组长和项目开发者可以索引并查看项目信息</span>
+                    <Icon type="lock" />
+                    私有
+                    <br />
+                    <span className="radio-desc">
+                      只有组长和项目开发者可以索引并查看项目信息
+                    </span>
                   </Radio>
                   <br />
-                  {projectMsg.role === 'admin' && <Radio value="public" className="radio">
-                    <Icon type="unlock" />公开<br />
-                    <span className="radio-desc">任何人都可以索引并查看项目信息</span>
-                  </Radio>}
-                  
+                  {projectMsg.role === 'admin' && (
+                    <Radio value="public" className="radio">
+                      <Icon type="unlock" />
+                      公开
+                      <br />
+                      <span className="radio-desc">
+                        任何人都可以索引并查看项目信息
+                      </span>
+                    </Radio>
+                  )}
                 </RadioGroup>
               )}
             </FormItem>
@@ -489,7 +544,8 @@ class ProjectMessage extends Component {
                   <Icon type="exclamation-circle-o" /> 危险操作
                 </h2>
                 <Button onClick={this.toggleDangerOptions}>
-                  查 看<Icon type={this.state.showDangerOptions ? 'up' : 'down'} />
+                  查 看
+                  <Icon type={this.state.showDangerOptions ? 'up' : 'down'} />
                 </Button>
               </div>
               {this.state.showDangerOptions ? (

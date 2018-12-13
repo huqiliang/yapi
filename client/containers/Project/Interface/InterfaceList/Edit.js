@@ -81,7 +81,8 @@ class InterfaceEdit extends Component {
   }
 
   componentDidMount() {
-    let domain = location.hostname + (location.port !== '' ? ':' + location.port : '');
+    let domain =
+      location.hostname + (location.port !== '' ? ':' + location.port : '');
     let s,
       initData = false;
     //因后端 node 仅支持 ws， 暂不支持 wss
@@ -185,7 +186,13 @@ class InterfaceEdit extends Component {
   };
 
   render() {
-    const { cat, basepath, switch_notice, tag } = this.props.currProject;
+    const {
+      cat,
+      basepath,
+      switch_notice,
+      tag,
+      testPath
+    } = this.props.currProject;
     return (
       <div className="interface-edit">
         {this.state.status === 1 ? (
@@ -193,6 +200,7 @@ class InterfaceEdit extends Component {
             cat={cat}
             mockUrl={this.state.mockUrl}
             basepath={basepath}
+            testPath={testPath}
             noticed={switch_notice}
             onSubmit={this.onSubmit}
             curdata={this.state.curdata}
@@ -200,7 +208,13 @@ class InterfaceEdit extends Component {
           />
         ) : null}
         {this.state.status === 2 ? (
-          <div style={{ textAlign: 'center', fontSize: '14px', paddingTop: '10px' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: '14px',
+              paddingTop: '10px'
+            }}
+          >
             <Link to={'/user/profile/' + this.state.curdata.uid}>
               <b>{this.state.curdata.username}</b>
             </Link>

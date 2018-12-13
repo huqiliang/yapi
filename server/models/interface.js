@@ -17,6 +17,7 @@ class interfaceModel extends baseModel {
       edit_uid: { type: Number, default: 0 },
       status: { type: String, enum: ['undone', 'done'], default: 'undone' },
       desc: String,
+      testConcatPath: String,
       markdown: String,
       add_time: Number,
       up_time: Number,
@@ -171,7 +172,8 @@ class interfaceModel extends baseModel {
 
   list(project_id, select) {
     select =
-      select || '_id title uid path method project_id catid edit_uid status add_time up_time';
+      select ||
+      '_id title uid path method project_id catid edit_uid status add_time up_time';
     return this.model
       .find({
         project_id: project_id
@@ -213,7 +215,8 @@ class interfaceModel extends baseModel {
 
   listByCatid(catid, select) {
     select =
-      select || '_id title uid path method project_id catid edit_uid status add_time up_time index tag';
+      select ||
+      '_id title uid path method project_id catid edit_uid status add_time up_time index tag';
     return this.model
       .find({
         catid: catid
