@@ -8,7 +8,7 @@ const userModel = require('../models/user.js');
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
 const shell = require('shelljs');
-const fs = require('fs');
+const path = require('path');
 const {
   handleParams,
   crossRequest,
@@ -312,12 +312,11 @@ class openController extends baseController {
         let obj;
         let res = await that.interfaceModel.get(item.interface_id);
         if (res) {
+          const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
           return new Promise((resolve, reject) => {
-            let shellpy = `python3 /Users/huqiliang/Documents/fork/yapi/jmeter/jmeter.py -u ${
-              item.env.domain
-            } -g ${item.projectTestPath} -p ${item.testConcatPath} -o ${
-              item.project_id
-            }/${item.id}`;
+            let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
+              item.projectTestPath
+            } -p ${item.testConcatPath} -o ${item.project_id}/${item.id}`;
             //let shellpy = 'python /Users/huqiliang/Documents/fork/yapi/test.py';
             shell.exec(shellpy, async function(code, stdout) {
               let result = JSON.parse(yapi.commons.trim(stdout));
