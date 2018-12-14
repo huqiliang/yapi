@@ -306,6 +306,7 @@ class openController extends baseController {
 
     caseList = caseList.data;
     let testList = [];
+    const startTime = new Date().getTime();
     async function useSell(that, item) {
       try {
         let obj;
@@ -352,10 +353,22 @@ class openController extends baseController {
 
       let result = await useSell(this, item);
       if (result.errorCode != 0) {
-        testList.push(result);
+        let allResult = Object.assign(result, item);
+        testList.push(allResult);
       }
     }
-    return (ctx.body = testList);
+    console.log('====================================');
+    console.log(testList);
+    console.log('====================================');
+    const endTime = new Date().getTime();
+    const executionTime = (endTime - startTime) / 1000;
+    let succenNum = 0;
+    _.map(testList, o => {
+      if (o.status == 'success') {
+        succenNum += 1;
+      }
+    });
+    await ctx.render('report', { testList, executionTime, succenNum });
   }
   async handleTest(interfaceData) {
     let requestParams = {};

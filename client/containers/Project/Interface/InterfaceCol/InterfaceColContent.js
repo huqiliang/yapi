@@ -828,6 +828,11 @@ class InterfaceColContent extends Component {
     }&token=${this.props.token}${currColEnvObj ? currColEnvObj : ''}&mode=${
       this.state.mode
     }&email=${this.state.email}&download=${this.state.download}`;
+    const autoLvYunTestsUrl = `/api/open/run_lvyun_test?id=${
+      this.props.currColId
+    }&token=${this.props.token}${currColEnvObj ? currColEnvObj : ''}&mode=${
+      this.state.mode
+    }&email=${this.state.email}&download=${this.state.download}`;
 
     let col_name = '';
     let col_desc = '';
@@ -1158,7 +1163,7 @@ class InterfaceColContent extends Component {
                 />
               </Col>
             </Row>
-            <Row
+            {/* <Row
               type="flex"
               justify="space-around"
               className="row"
@@ -1175,7 +1180,7 @@ class InterfaceColContent extends Component {
                   />
                 </Tooltip>
                 &nbsp;：
-              </Col>
+              </Col> 
               <Col span={21}>
                 <Switch
                   checked={this.state.email}
@@ -1184,7 +1189,7 @@ class InterfaceColContent extends Component {
                   onChange={this.emailChange}
                 />
               </Col>
-            </Row>
+            </Row>*/}
             <Row
               type="flex"
               justify="space-around"
@@ -1195,15 +1200,15 @@ class InterfaceColContent extends Component {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={localUrl + autoTestsUrl}
+                  href={localUrl + autoLvYunTestsUrl}
                 >
-                  {autoTestsUrl}
+                  {autoLvYunTestsUrl}
                 </a>
               </Col>
               <Col span={3}>
                 <Button
                   className="copy-btn"
-                  onClick={() => this.copyUrl(localUrl + autoTestsUrl)}
+                  onClick={() => this.copyUrl(localUrl + autoLvYunTestsUrl)}
                 >
                   复制
                 </Button>
