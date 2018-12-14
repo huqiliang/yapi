@@ -316,8 +316,11 @@ class openController extends baseController {
           return new Promise((resolve, reject) => {
             let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
               item.projectTestPath
-            } -p ${item.testConcatPath} -o ${item.project_id}/${item.id}`;
+            } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
             //let shellpy = 'python /Users/huqiliang/Documents/fork/yapi/test.py';
+            console.log('====================================');
+            console.log(shellpy);
+            console.log('====================================');
             shell.exec(shellpy, async function(code, stdout) {
               let result = JSON.parse(yapi.commons.trim(stdout));
               if (!_.isEmpty(result)) {
@@ -356,9 +359,6 @@ class openController extends baseController {
         testList.push(allResult);
       }
     }
-    console.log('====================================');
-    console.log(testList);
-    console.log('====================================');
     const endTime = new Date().getTime();
     const executionTime = (endTime - startTime) / 1000;
     let succenNum = 0;
