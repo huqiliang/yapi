@@ -20,10 +20,10 @@ const jsf = require('json-schema-faker');
 const formats = require('../../common/formats');
 const http = require('http');
 
-jsf.extend ('mock', function () {
+jsf.extend('mock', function() {
   return {
-    mock: function (xx) {
-      return Mock.mock (xx);
+    mock: function(xx) {
+      return Mock.mock(xx);
     }
   };
 });
@@ -45,7 +45,7 @@ const defaultOptions = {
 
 exports.schemaToJson = function(schema, options = {}) {
   Object.assign(options, defaultOptions);
-  
+
   jsf.option(options);
   let result;
   try {
@@ -158,7 +158,9 @@ exports.randStr = () => {
 exports.getIp = ctx => {
   let ip;
   try {
-    ip = ctx.ip.match(/\d+.\d+.\d+.\d+/) ? ctx.ip.match(/\d+.\d+.\d+.\d+/)[0] : 'localhost';
+    ip = ctx.ip.match(/\d+.\d+.\d+.\d+/)
+      ? ctx.ip.match(/\d+.\d+.\d+.\d+/)[0]
+      : 'localhost';
   } catch (e) {
     ip = null;
   }
@@ -177,13 +179,18 @@ exports.expireDate = day => {
 
 exports.sendMail = (options, cb) => {
   if (!yapi.mail) return false;
-  options.subject = options.subject ? options.subject + '-YApi 平台' : 'YApi 平台';
+  options.subject = options.subject
+    ? options.subject + '-YApi 平台'
+    : 'YApi 平台';
 
   cb =
     cb ||
     function(err) {
       if (err) {
-        yapi.commons.log('send mail ' + options.to + ' error,' + err.message, 'error');
+        yapi.commons.log(
+          'send mail ' + options.to + ' error,' + err.message,
+          'error'
+        );
       } else {
         yapi.commons.log('send mail ' + options.to + ' success');
       }
@@ -331,7 +338,12 @@ exports.rtrim = rtrim;
  * @return Object {a: 'ab', b: 123}
  */
 exports.handleParams = (params, keys) => {
-  if (!params || typeof params !== 'object' || !keys || typeof keys !== 'object') {
+  if (
+    !params ||
+    typeof params !== 'object' ||
+    !keys ||
+    typeof keys !== 'object'
+  ) {
     return false;
   }
 
@@ -412,17 +424,41 @@ exports.saveLog = logData => {
  * @param {*} action controller action_name
  * @param {*} ws enable ws
  */
-exports.createAction = (router, baseurl, routerController, action, path, method, ws) => {
+exports.createAction = (
+  router,
+  baseurl,
+  routerController,
+  action,
+  path,
+  method,
+  ws
+) => {
   router[method](baseurl + path, async ctx => {
     let inst = new routerController(ctx);
     try {
       await inst.init(ctx);
-      if (inst.schemaMap && typeof inst.schemaMap === 'object' && inst.schemaMap[action]) {
-        ctx.params = Object.assign({}, ctx.request.query, ctx.request.body, ctx.params);
-        let validResult = yapi.commons.validateParams(inst.schemaMap[action], ctx.params);
+      if (
+        inst.schemaMap &&
+        typeof inst.schemaMap === 'object' &&
+        inst.schemaMap[action]
+      ) {
+        ctx.params = Object.assign(
+          {},
+          ctx.request.query,
+          ctx.request.body,
+          ctx.params
+        );
+        let validResult = yapi.commons.validateParams(
+          inst.schemaMap[action],
+          ctx.params
+        );
 
         if (!validResult.valid) {
-          return (ctx.body = yapi.commons.resReturn(null, 400, validResult.message));
+          return (ctx.body = yapi.commons.resReturn(
+            null,
+            400,
+            validResult.message
+          ));
         }
       }
       if (inst.$auth === true) {
@@ -486,12 +522,20 @@ exports.getCaseList = async function getCaseList(id) {
     }
     let projectData = await projectInst.getBaseInfo(data.project_id);
     result.path = projectData.basepath + data.path;
+    result.projectTestPath = projectData.testPath;
+    result.testConcatPath = data.testConcatPath;
     result.method = data.method;
     result.title = data.title;
     result.req_body_type = data.req_body_type;
-    result.req_headers = handleParamsValue(data.req_headers, result.req_headers);
+    result.req_headers = handleParamsValue(
+      data.req_headers,
+      result.req_headers
+    );
     result.res_body_type = data.res_body_type;
-    result.req_body_form = handleParamsValue(data.req_body_form, result.req_body_form);
+    result.req_body_form = handleParamsValue(
+      data.req_body_form,
+      result.req_body_form
+    );
     result.req_query = handleParamsValue(data.req_query, result.req_query);
     result.req_params = handleParamsValue(data.req_params, result.req_params);
     resultList[index] = result;
@@ -627,8 +671,6 @@ exports.handleMockScript = function(script, context) {
   context.delay = sandbox.delay;
 };
 
-
-
 exports.createWebAPIRequest = function(ops) {
   return new Promise(function(resolve, reject) {
     let req = '';
@@ -645,7 +687,7 @@ exports.createWebAPIRequest = function(ops) {
         });
         res.setEncoding('utf8');
         if (res.statusCode != 200) {
-          reject({message: 'statusCode != 200'});
+          reject({ message: 'statusCode != 200' });
         } else {
           res.on('data', function(chunk) {
             req += chunk;
@@ -656,10 +698,9 @@ exports.createWebAPIRequest = function(ops) {
         }
       }
     );
-    http_client.on('error', (e) => {
-      reject({message: `request error: ${e.message}`});
+    http_client.on('error', e => {
+      reject({ message: `request error: ${e.message}` });
     });
     http_client.end();
   });
-}
-
+};

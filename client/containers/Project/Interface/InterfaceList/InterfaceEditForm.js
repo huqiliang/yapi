@@ -1055,6 +1055,8 @@ class InterfaceEditForm extends Component {
                 <Select>
                   <Option value="done">已完成</Option>
                   <Option value="undone">未完成</Option>
+                  <Option value="testRefuse" disabled>测试未通过</Option>
+                  <Option value="testPass" disabled>测试通过</Option>
                 </Select>
               )}
             </FormItem>

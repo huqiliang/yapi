@@ -8,6 +8,7 @@ const userModel = require('../models/user.js');
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
 const shell = require('shelljs');
+const fs = require('fs');
 const {
   handleParams,
   crossRequest,
@@ -41,6 +42,24 @@ class openController extends baseController {
     this.handleValue = this.handleValue.bind(this);
     this.schemaMap = {
       runAutoTest: {
+        '*id': 'number',
+        project_id: 'string',
+        token: 'string',
+        mode: {
+          type: 'string',
+          default: 'html'
+        },
+        email: {
+          type: 'boolean',
+          default: false
+        },
+        download: {
+          type: 'boolean',
+          default: false
+        },
+        closeRemoveAdditional: true
+      },
+      runLvYunTest: {
         '*id': 'number',
         project_id: 'string',
         token: 'string',
@@ -152,13 +171,9 @@ class openController extends baseController {
     return result;
   }
   async runAutoTest(ctx) {
-    console.log('====================================');
-    console.log(this.$tokenAuth);
-    console.log('====================================');
     if (!this.$tokenAuth) {
       return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
     }
-    // console.log(1231312)
     const token = ctx.query.token;
 
     const projectId = ctx.params.project_id;
@@ -285,15 +300,62 @@ class openController extends baseController {
     if (!this.$tokenAuth) {
       return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
     }
-    shell.exec('python /Users/huqiliang/Documents/fork/yapi/test.py', function(
-      code,
-      stdout,
-      stderr
-    ) {
-      console.log('Exit code:', code);
-      console.log('Program output:', stdout);
-      console.log('Program stderr:', stderr);
-    });
+    let id = ctx.params.id;
+    let caseList = await yapi.commons.getCaseList(id);
+    let curEnvList = this.handleEvnParams(ctx.params);
+
+    caseList = caseList.data;
+    let testList = [];
+    async function useSell(that, item) {
+      try {
+        let obj;
+        let res = await that.interfaceModel.get(item.interface_id);
+        if (res) {
+          return new Promise((resolve, reject) => {
+            let shellpy = `python3 /Users/huqiliang/Documents/fork/yapi/jmeter/jmeter.py -u ${
+              item.env.domain
+            } -g ${item.projectTestPath} -p ${item.testConcatPath} -o ${
+              item.project_id
+            }/${item.id}`;
+            //let shellpy = 'python /Users/huqiliang/Documents/fork/yapi/test.py';
+            shell.exec(shellpy, async function(code, stdout) {
+              let result = JSON.parse(yapi.commons.trim(stdout));
+              if (!_.isEmpty(result)) {
+                if (result.status == 'success') {
+                  //修改状态
+                  obj = Object.assign(res, { status: 'testPass' });
+                } else {
+                  obj = Object.assign(res, { status: 'testRefuse' });
+                }
+                await that.interfaceModel.save(obj);
+                resolve(result);
+              } else {
+                reject({ errCode: 0 });
+              }
+            });
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    for (let i = 0, l = caseList.length; i < l; i++) {
+      let item = caseList[i];
+      let projectEvn = await this.projectModel.getByEnv(item.project_id);
+      let curEnvItem = _.find(curEnvList, key => {
+        return key.project_id == item.project_id;
+      });
+      item.env = _.find(projectEvn.env, val => {
+        return val.name == curEnvItem.curEnv;
+      });
+      item.id = item._id;
+
+      let result = await useSell(this, item);
+      if (result.errorCode != 0) {
+        testList.push(result);
+      }
+    }
+    return (ctx.body = testList);
   }
   async handleTest(interfaceData) {
     let requestParams = {};

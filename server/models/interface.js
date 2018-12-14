@@ -15,7 +15,11 @@ class interfaceModel extends baseModel {
       project_id: { type: Number, required: true },
       catid: { type: Number, required: true },
       edit_uid: { type: Number, default: 0 },
-      status: { type: String, enum: ['undone', 'done'], default: 'undone' },
+      status: {
+        type: String,
+        enum: ['undone', 'done', 'testRefuse', 'testPass'],
+        default: 'undone'
+      },
       desc: String,
       testConcatPath: String,
       markdown: String,
