@@ -539,7 +539,8 @@ export default class Run extends Component {
     let domain =
       location.hostname + (location.port !== '' ? ':' + location.port : '');
     //因后端 node 仅支持 ws， 暂不支持 wss
-    let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    // let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    let wsProtocol = 'ws';
     // let options = handleParams(this.state, this.handleValue);
     const { _id: id, case_env } = this.state;
     const projectId = this.props.data.project_id;
