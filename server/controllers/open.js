@@ -296,32 +296,51 @@ class openController extends baseController {
       return (ctx.body = renderToHtml(reportsResult));
     }
   }
-  async runLvYunTest(ctx) {
-    if (!this.$tokenAuth) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
+  async runLvYunSingleTest(ctx) {
+    try {
+      // let item = this.
+      let project = await this.projectModel.get(ctx.request.query.projectId);
+      let interfase = await this.interfaceModel.get(
+        ctx.request.query.interFasceId
+      );
+      let env = _.find(project.env, val => {
+        return val.name === ctx.request.query.env;
+      });
+      console.log('====================================');
+      console.log(env);
+      console.log('====================================');
+      let item = {
+        project_id: ctx.request.query.projectId,
+        id: ctx.request.query.interFasceId,
+        interface_id: ctx.request.query.interFasceId,
+        projectTestPath: project.testPath,
+        path: interfase.path,
+        env
+      };
+      if (item) {
+        let result = await this.useSell(this, item);
+        ctx.websocket.send(JSON.stringify(result));
+      }
+    } catch (error) {
+      console.log(error);
     }
-    let id = ctx.params.id;
-    let caseList = await yapi.commons.getCaseList(id);
-    let curEnvList = this.handleEvnParams(ctx.params);
+  }
+  async useSell(that, item) {
+    try {
+      let obj;
+      let res = await that.interfaceModel.get(item.interface_id);
+      if (res) {
+        const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
+        return new Promise((resolve, reject) => {
+          let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
+            item.projectTestPath
+          } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
 
-    caseList = caseList.data;
-    let testList = [];
-    const startTime = new Date().getTime();
-    async function useSell(that, item) {
-      try {
-        let obj;
-        let res = await that.interfaceModel.get(item.interface_id);
-        if (res) {
-          const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
-          return new Promise((resolve, reject) => {
-            let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
-              item.projectTestPath
-            } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
-            //let shellpy = 'python /Users/huqiliang/Documents/fork/yapi/test.py';
-            console.log('====================================');
-            console.log(shellpy);
-            console.log('====================================');
-            shell.exec(shellpy, async function(code, stdout) {
+          console.log('====================================');
+          console.log('执行命令:' + shellpy);
+          console.log('====================================');
+          shell.exec(shellpy, async function(code, stdout) {
+            if (!_.isEmpty(stdout)) {
               let result = JSON.parse(yapi.commons.trim(stdout));
               if (!_.isEmpty(result)) {
                 if (result.status == 'success') {
@@ -335,13 +354,28 @@ class openController extends baseController {
               } else {
                 reject({ errCode: 0 });
               }
-            });
+            } else {
+              reject({ errCode: 0 });
+            }
           });
-        }
-      } catch (error) {
-        console.log(error);
+        });
       }
+    } catch (error) {
+      console.log(error);
     }
+  }
+  async runLvYunTest(ctx) {
+    if (!this.$tokenAuth) {
+      return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
+    }
+    let id = ctx.params.id;
+    let caseList = await yapi.commons.getCaseList(id);
+    let curEnvList = this.handleEvnParams(ctx.params);
+
+    caseList = caseList.data;
+    let testList = [];
+    const startTime = new Date().getTime();
+
     for (let i = 0, l = caseList.length; i < l; i++) {
       let item = caseList[i];
       let projectEvn = await this.projectModel.getByEnv(item.project_id);
@@ -352,8 +386,10 @@ class openController extends baseController {
         return val.name == curEnvItem.curEnv;
       });
       item.id = item._id;
-
-      let result = await useSell(this, item);
+      console.log('====================================');
+      console.log(item);
+      console.log('====================================');
+      let result = await this.useSell(this, item);
       if (result.errorCode != 0) {
         let allResult = Object.assign(result, item);
         testList.push(allResult);

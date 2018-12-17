@@ -26,7 +26,11 @@ import CheckCrossInstall, { initCrossRequest } from './CheckCrossInstall.js';
 import './Postman.scss';
 import ProjectEnv from '../../containers/Project/Setting/ProjectEnv/index.js';
 import json5 from 'json5';
-const { handleParamsValue, ArrayToObject, schemaValidator } = require('common/utils.js');
+const {
+  handleParamsValue,
+  ArrayToObject,
+  schemaValidator
+} = require('common/utils.js');
 const {
   handleParams,
   checkRequestBodyIsRaw,
@@ -129,6 +133,9 @@ export default class Run extends Component {
       envModalVisible: false,
       test_res_header: null,
       test_res_body: null,
+      testData: '',
+      testModal: false,
+      webSocketOpen: false,
       ...this.props.data
     };
   }
@@ -213,7 +220,9 @@ export default class Run extends Component {
         test_valid_msg: null,
         resStatusText: null
       },
-      () => this.props.type === 'inter' && this.initEnvState(data.case_env, data.env)
+      () =>
+        this.props.type === 'inter' &&
+        this.initEnvState(data.case_env, data.env)
     );
   }
 
@@ -250,10 +259,15 @@ export default class Run extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.checkInterfaceData(nextProps.data) && this.checkInterfaceData(this.props.data)) {
+    if (
+      this.checkInterfaceData(nextProps.data) &&
+      this.checkInterfaceData(this.props.data)
+    ) {
       if (nextProps.data._id !== this.props.data._id) {
         this.initState(nextProps.data);
-      } else if (nextProps.data.interface_up_time !== this.props.data.interface_up_time) {
+      } else if (
+        nextProps.data.interface_up_time !== this.props.data.interface_up_time
+      ) {
         this.initState(nextProps.data);
       }
       if (nextProps.data.env !== this.props.data.env) {
@@ -300,7 +314,11 @@ export default class Run extends Component {
       result;
 
     try {
-      result = await crossRequest(options, this.state.pre_script, this.state.after_script);
+      result = await crossRequest(
+        options,
+        this.state.pre_script,
+        this.state.after_script
+      );
       result = {
         header: result.res.header,
         body: result.res.body,
@@ -367,7 +385,6 @@ export default class Run extends Component {
   };
 
   changeParam = (name, v, index, key) => {
-    
     key = key || 'value';
     const pathParam = deepCopyJson(this.state[name]);
 
@@ -403,7 +420,9 @@ export default class Run extends Component {
     if (type === 'req_body_other') {
       // req_body
       let editor = this.aceEditor.editor.editor;
-      cursurPosition = editor.session.doc.positionToIndex(editor.selection.getCursor());
+      cursurPosition = editor.session.doc.positionToIndex(
+        editor.selection.getCursor()
+      );
       // 获取选中的数据
       inputValue = this.getInstallValue(val || '', cursurPosition).val;
     } else {
@@ -459,7 +478,11 @@ export default class Run extends Component {
     // console.log(leftPostion, leftPostion2,rightPostion, rightPostion2);
     let val = '';
     // 需要切除原来的变量
-    if (leftPostion !== -1 && rightPostion !== -1 && leftPostion > leftPostion2) {
+    if (
+      leftPostion !== -1 &&
+      rightPostion !== -1 &&
+      leftPostion > leftPostion2
+    ) {
       left = left.substr(0, leftPostion);
       right = right.substr(rightPostion + 2);
       val = oldValue.substring(leftPostion, cursurPosition + rightPostion + 2);
@@ -509,7 +532,49 @@ export default class Run extends Component {
       envModalVisible: false
     });
   };
+  sendTest() {
+    this.setState({
+      testModal: true
+    });
+    let domain =
+      location.hostname + (location.port !== '' ? ':' + location.port : '');
+    //因后端 node 仅支持 ws， 暂不支持 wss
+    let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    // let options = handleParams(this.state, this.handleValue);
+    const { _id: id, case_env } = this.state;
+    const projectId = this.props.data.project_id;
+    const ws = new WebSocket(
+      wsProtocol +
+        '://' +
+        domain +
+        '/api/open/run_lvyun_single_test?projectId=' +
+        projectId +
+        '&interFasceId=' +
+        id +
+        '&env=' +
+        case_env
+    );
+    ws.onopen = () => {
+      this.setState({
+        webSocketOpen: true
+      });
+      ws.send('beginTest');
+    };
 
+    ws.onmessage = e => {
+      this.setState({
+        testData: JSON.parse(e.data),
+        webSocketOpen: false
+      });
+    };
+    ws.onclose = () => {
+      console.log('websocket close');
+      this.setState({
+        testData: '',
+        webSocketOpen: false
+      });
+    };
+  }
   render() {
     const {
       method,
@@ -549,7 +614,10 @@ export default class Run extends Component {
             width={800}
             className="env-modal"
           >
-            <ProjectEnv projectId={this.props.data.project_id} onOk={this.handleEnvOk} />
+            <ProjectEnv
+              projectId={this.props.data.project_id}
+              onOk={this.handleEnvOk}
+            />
           </Modal>
         )}
         <CheckCrossInstall hasPlugin={hasPlugin} />
@@ -558,7 +626,9 @@ export default class Run extends Component {
           <InputGroup compact style={{ display: 'flex' }}>
             <Select disabled value={method} style={{ flexBasis: 60 }}>
               {Object.keys(HTTP_METHOD).map(name => {
-                <Option value={name.toUpperCase()}>{name.toUpperCase()}</Option>;
+                <Option value={name.toUpperCase()}>
+                  {name.toUpperCase()}
+                </Option>;
               })}
             </Select>
             <Select
@@ -571,7 +641,11 @@ export default class Run extends Component {
                   {item.name + '：' + item.domain}
                 </Option>
               ))}
-              <Option value="环境配置" disabled style={{ cursor: 'pointer', color: '#2395f1' }}>
+              <Option
+                value="环境配置"
+                disabled
+                style={{ cursor: 'pointer', color: '#2395f1' }}
+              >
                 <Button type="primary" onClick={this.showEnvModal}>
                   环境配置
                 </Button>
@@ -611,11 +685,26 @@ export default class Run extends Component {
           <Tooltip
             placement="bottom"
             title={() => {
-              return this.props.type === 'inter' ? '保存到测试集' : '更新该用例';
+              return this.props.type === 'inter'
+                ? '保存到测试集'
+                : '更新该用例';
             }}
           >
-            <Button onClick={this.props.save} type="primary" style={{ marginLeft: 10 }}>
+            <Button
+              onClick={this.props.save}
+              type="primary"
+              style={{ marginLeft: 10 }}
+            >
               {this.props.type === 'inter' ? '保存' : '更新'}
+            </Button>
+          </Tooltip>
+          <Tooltip placement="bottom" title={'绿云测试'}>
+            <Button
+              style={{ marginLeft: 10 }}
+              type="primary"
+              onClick={this.sendTest.bind(this)}
+            >
+              测试
             </Button>
           </Tooltip>
         </div>
@@ -635,18 +724,26 @@ export default class Run extends Component {
                   >
                     <Input disabled value={item.name} className="key" />
                   </Tooltip> */}
-                  <ParamsNameComponent example={item.example} desc={item.desc} name={item.name} />
+                  <ParamsNameComponent
+                    example={item.example}
+                    desc={item.desc}
+                    name={item.name}
+                  />
                   <span className="eq-symbol">=</span>
                   <Input
                     value={item.value}
                     className="value"
-                    onChange={e => this.changeParam('req_params', e.target.value, index)}
+                    onChange={e =>
+                      this.changeParam('req_params', e.target.value, index)
+                    }
                     placeholder="参数值"
                     id={`req_params_${index}`}
                     addonAfter={
                       <Icon
                         type="edit"
-                        onClick={() => this.showModal(item.value, index, 'req_params')}
+                        onClick={() =>
+                          this.showModal(item.value, index, 'req_params')
+                        }
                       />
                     }
                   />
@@ -676,16 +773,29 @@ export default class Run extends Component {
                   >
                     <Input disabled value={item.name} className="key" />
                   </Tooltip> */}
-                  <ParamsNameComponent example={item.example} desc={item.desc} name={item.name} />
+                  <ParamsNameComponent
+                    example={item.example}
+                    desc={item.desc}
+                    name={item.name}
+                  />
                   &nbsp;
                   {item.required == 1 ? (
-                    <Checkbox className="params-enable" checked={true} disabled />
+                    <Checkbox
+                      className="params-enable"
+                      checked={true}
+                      disabled
+                    />
                   ) : (
                     <Checkbox
                       className="params-enable"
                       checked={item.enable}
                       onChange={e =>
-                        this.changeParam('req_query', e.target.checked, index, 'enable')
+                        this.changeParam(
+                          'req_query',
+                          e.target.checked,
+                          index,
+                          'enable'
+                        )
                       }
                     />
                   )}
@@ -693,24 +803,37 @@ export default class Run extends Component {
                   <Input
                     value={item.value}
                     className="value"
-                    onChange={e => this.changeParam('req_query', e.target.value, index)}
+                    onChange={e =>
+                      this.changeParam('req_query', e.target.value, index)
+                    }
                     placeholder="参数值"
                     id={`req_query_${index}`}
                     addonAfter={
                       <Icon
                         type="edit"
-                        onClick={() => this.showModal(item.value, index, 'req_query')}
+                        onClick={() =>
+                          this.showModal(item.value, index, 'req_query')
+                        }
                       />
                     }
                   />
                 </div>
               );
             })}
-            <Button style={{ display: 'none' }} type="primary" icon="plus" onClick={this.addQuery}>
+            <Button
+              style={{ display: 'none' }}
+              type="primary"
+              icon="plus"
+              onClick={this.addQuery}
+            >
               添加Query参数
             </Button>
           </Panel>
-          <Panel header="HEADERS" key="2" className={req_headers.length === 0 ? 'hidden' : ''}>
+          <Panel
+            header="HEADERS"
+            key="2"
+            className={req_headers.length === 0 ? 'hidden' : ''}
+          >
             {req_headers.map((item, index) => {
               return (
                 <div key={index} className="key-value-wrap">
@@ -720,20 +843,28 @@ export default class Run extends Component {
                   >
                     <Input disabled value={item.name} className="key" />
                   </Tooltip> */}
-                  <ParamsNameComponent example={item.example} desc={item.desc} name={item.name} />
+                  <ParamsNameComponent
+                    example={item.example}
+                    desc={item.desc}
+                    name={item.name}
+                  />
                   <span className="eq-symbol">=</span>
                   <Input
                     value={item.value}
                     disabled={!!item.abled}
                     className="value"
-                    onChange={e => this.changeParam('req_headers', e.target.value, index)}
+                    onChange={e =>
+                      this.changeParam('req_headers', e.target.value, index)
+                    }
                     placeholder="参数值"
                     id={`req_headers_${index}`}
                     addonAfter={
                       !item.abled && (
                         <Icon
                           type="edit"
-                          onClick={() => this.showModal(item.value, index, 'req_headers')}
+                          onClick={() =>
+                            this.showModal(item.value, index, 'req_headers')
+                          }
                         />
                       )
                     }
@@ -741,7 +872,12 @@ export default class Run extends Component {
                 </div>
               );
             })}
-            <Button style={{ display: 'none' }} type="primary" icon="plus" onClick={this.addHeader}>
+            <Button
+              style={{ display: 'none' }}
+              type="primary"
+              icon="plus"
+              onClick={this.addHeader}
+            >
               添加Header
             </Button>
           </Panel>
@@ -754,18 +890,29 @@ export default class Run extends Component {
             key="3"
             className={
               HTTP_METHOD[method].request_body &&
-              ((req_body_type === 'form' && req_body_form.length > 0) || req_body_type !== 'form')
+              ((req_body_type === 'form' && req_body_form.length > 0) ||
+                req_body_type !== 'form')
                 ? 'POST'
                 : 'hidden'
             }
           >
             <div
-              style={{ display: checkRequestBodyIsRaw(method, req_body_type) ? 'block' : 'none' }}
+              style={{
+                display: checkRequestBodyIsRaw(method, req_body_type)
+                  ? 'block'
+                  : 'none'
+              }}
             >
               {req_body_type === 'json' && (
                 <div className="adv-button">
                   <Button
-                    onClick={() => this.showModal(this.state.req_body_other, 0, 'req_body_other')}
+                    onClick={() =>
+                      this.showModal(
+                        this.state.req_body_other,
+                        0,
+                        'req_body_other'
+                      )
+                    }
                   >
                     高级参数设置
                   </Button>
@@ -786,76 +933,88 @@ export default class Run extends Component {
               />
             </div>
 
-            {HTTP_METHOD[method].request_body &&
-              req_body_type === 'form' && (
-                <div>
-                  {req_body_form.map((item, index) => {
-                    return (
-                      <div key={index} className="key-value-wrap">
-                        {/* <Tooltip
+            {HTTP_METHOD[method].request_body && req_body_type === 'form' && (
+              <div>
+                {req_body_form.map((item, index) => {
+                  return (
+                    <div key={index} className="key-value-wrap">
+                      {/* <Tooltip
                           placement="topLeft"
                           title={<TooltipContent example={item.example} desc={item.desc} />}
                         >
                           <Input disabled value={item.name} className="key" />
                         </Tooltip> */}
-                        <ParamsNameComponent
-                          example={item.example}
-                          desc={item.desc}
-                          name={item.name}
+                      <ParamsNameComponent
+                        example={item.example}
+                        desc={item.desc}
+                        name={item.name}
+                      />
+                      &nbsp;
+                      {item.required == 1 ? (
+                        <Checkbox
+                          className="params-enable"
+                          checked={true}
+                          disabled
                         />
-                        &nbsp;
-                        {item.required == 1 ? (
-                          <Checkbox className="params-enable" checked={true} disabled />
-                        ) : (
-                          <Checkbox
-                            className="params-enable"
-                            checked={item.enable}
-                            onChange={e => this.changeBody(e.target.checked, index, 'enable')}
-                          />
-                        )}
-                        <span className="eq-symbol">=</span>
-                        {item.type === 'file' ? (
-                          <Input
-                            type="file"
-                            id={'file_' + index}
-                            onChange={e => this.changeBody(e.target.value, index, 'value')}
-                            multiple
-                            className="value"
-                          />
-                        ) : (
-                          <Input
-                            value={item.value}
-                            className="value"
-                            onChange={e => this.changeBody(e.target.value, index)}
-                            placeholder="参数值"
-                            id={`req_body_form_${index}`}
-                            addonAfter={
-                              <Icon
-                                type="edit"
-                                onClick={() => this.showModal(item.value, index, 'req_body_form')}
-                              />
-                            }
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                  <Button
-                    style={{ display: 'none' }}
-                    type="primary"
-                    icon="plus"
-                    onClick={this.addBody}
-                  >
-                    添加Form参数
-                  </Button>
-                </div>
-              )}
-            {HTTP_METHOD[method].request_body &&
-              req_body_type === 'file' && (
-                <div>
-                  <Input type="file" id="single-file" />
-                </div>
-              )}
+                      ) : (
+                        <Checkbox
+                          className="params-enable"
+                          checked={item.enable}
+                          onChange={e =>
+                            this.changeBody(e.target.checked, index, 'enable')
+                          }
+                        />
+                      )}
+                      <span className="eq-symbol">=</span>
+                      {item.type === 'file' ? (
+                        <Input
+                          type="file"
+                          id={'file_' + index}
+                          onChange={e =>
+                            this.changeBody(e.target.value, index, 'value')
+                          }
+                          multiple
+                          className="value"
+                        />
+                      ) : (
+                        <Input
+                          value={item.value}
+                          className="value"
+                          onChange={e => this.changeBody(e.target.value, index)}
+                          placeholder="参数值"
+                          id={`req_body_form_${index}`}
+                          addonAfter={
+                            <Icon
+                              type="edit"
+                              onClick={() =>
+                                this.showModal(
+                                  item.value,
+                                  index,
+                                  'req_body_form'
+                                )
+                              }
+                            />
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+                <Button
+                  style={{ display: 'none' }}
+                  type="primary"
+                  icon="plus"
+                  onClick={this.addBody}
+                >
+                  添加Form参数
+                </Button>
+              </div>
+            )}
+            {HTTP_METHOD[method].request_body && req_body_type === 'file' && (
+              <div>
+                <Input type="file" id="single-file" />
+              </div>
+            )}
           </Panel>
         </Collapse>
 
@@ -929,7 +1088,11 @@ export default class Run extends Component {
           {this.props.type === 'case' ? (
             <Tabs.TabPane
               className="response-test"
-              tab={<Tooltip title="测试脚本，可断言返回结果，使用方法请查看文档">Test</Tooltip>}
+              tab={
+                <Tooltip title="测试脚本，可断言返回结果，使用方法请查看文档">
+                  Test
+                </Tooltip>
+              }
               key="test"
             >
               <h3 style={{ margin: '5px' }}>
@@ -939,7 +1102,9 @@ export default class Run extends Component {
                   onChange={e => this.setState({ enable_script: e })}
                 />
               </h3>
-              <p style={{ margin: '10px' }}>注：Test 脚本只有做自动化测试才执行</p>
+              <p style={{ margin: '10px' }}>
+                注：Test 脚本只有做自动化测试才执行
+              </p>
               <Row>
                 <Col span="18">
                   <AceEditor
@@ -973,6 +1138,69 @@ export default class Run extends Component {
             </Tabs.TabPane>
           ) : null}
         </Tabs>
+        {this.state.testModal && (
+          <Modal
+            className="testModal"
+            width={680}
+            onCancel={() => {
+              if (!this.state.webSocketOpen) {
+                this.setState({
+                  testModal: false,
+                  testData: ''
+                });
+              }
+            }}
+            footer={null}
+            title="测试结果"
+            visible={this.state.testModal}
+          >
+            {!this.state.testData ? (
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Spin />
+                </div>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    marginTop: '10px'
+                  }}
+                >
+                  正在跑测试用例,请不要刷新浏览器或关闭窗口
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p>
+                  <span>测试状态:</span>
+                  {this.state.testData.status}
+                </p>
+                <p>
+                  <span>测试日志:</span>
+                  <a target="_blank" href={this.state.testData.log}>
+                    点我
+                  </a>
+                </p>
+                <p>
+                  <span>测试jmx:</span>
+                  <a target="_blank" href={this.state.testData.jmx}>
+                    点我
+                  </a>
+                </p>
+                <p>
+                  <span>测试结果:</span>
+                  <a target="_blank" href={this.state.testData.html}>
+                    点我
+                  </a>
+                </p>
+              </div>
+            )}
+          </Modal>
+        )}
       </div>
     );
   }
