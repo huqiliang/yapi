@@ -86,6 +86,7 @@ export default class Run extends Component {
       after_script: currProject.after_script
     });
     data.path = currProject.basepath + currInterface.path;
+    data.testPath = currProject.testPath;
     return (
       <div>
         <Postman

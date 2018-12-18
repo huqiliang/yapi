@@ -14,7 +14,8 @@ import {
   Switch,
   Row,
   Col,
-  Alert
+  Alert,
+  message
 } from 'antd';
 import constants from '../../constants/variable.js';
 import AceEditor from 'client/components/AceEditor/AceEditor';
@@ -533,47 +534,55 @@ export default class Run extends Component {
     });
   };
   sendTest() {
-    this.setState({
-      testModal: true
-    });
-    let domain =
-      location.hostname + (location.port !== '' ? ':' + location.port : '');
-    //因后端 node 仅支持 ws， 暂不支持 wss
-    let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
-    // let options = handleParams(this.state, this.handleValue);
-    const { _id: id, case_env } = this.state;
-    const projectId = this.props.data.project_id;
-    const ws = new WebSocket(
-      wsProtocol +
-        '://' +
-        domain +
-        '/api/open/run_lvyun_single_test?projectId=' +
-        projectId +
-        '&interFasceId=' +
-        id +
-        '&env=' +
-        case_env
-    );
-    ws.onopen = () => {
-      this.setState({
-        webSocketOpen: true
-      });
-      ws.send('beginTest');
-    };
+    if (_.isEmpty(this.props.data.testPath)) {
+      message.error('请配置全局测试地址');
+    } else {
+      if (!/^ssh:\/\/.*$/.test(this.props.data.testPath)) {
+        message.error('全局测试地址必须是ssh的');
+      } else {
+        this.setState({
+          testModal: true
+        });
+        let domain =
+          location.hostname + (location.port !== '' ? ':' + location.port : '');
+        //因后端 node 仅支持 ws， 暂不支持 wss
+        let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+        // let options = handleParams(this.state, this.handleValue);
+        const { _id: id, case_env } = this.state;
+        const projectId = this.props.data.project_id;
+        const ws = new WebSocket(
+          wsProtocol +
+            '://' +
+            domain +
+            '/api/open/run_lvyun_single_test?projectId=' +
+            projectId +
+            '&interFasceId=' +
+            id +
+            '&env=' +
+            case_env
+        );
+        ws.onopen = () => {
+          this.setState({
+            webSocketOpen: true
+          });
+          ws.send('beginTest');
+        };
 
-    ws.onmessage = e => {
-      this.setState({
-        testData: JSON.parse(e.data),
-        webSocketOpen: false
-      });
-    };
-    ws.onclose = () => {
-      console.log('websocket close');
-      this.setState({
-        testData: '',
-        webSocketOpen: false
-      });
-    };
+        ws.onmessage = e => {
+          this.setState({
+            testData: JSON.parse(e.data),
+            webSocketOpen: false
+          });
+        };
+        ws.onclose = () => {
+          console.log('websocket close');
+          this.setState({
+            testData: '',
+            webSocketOpen: false
+          });
+        };
+      }
+    }
   }
   render() {
     const {
