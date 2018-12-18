@@ -326,24 +326,21 @@ class openController extends baseController {
     }
   }
   async useSell(that, item) {
-    try {
-      let obj;
-      let res = await that.interfaceModel.get(item.interface_id);
-      if (res) {
-        const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
-        return new Promise((resolve, reject) => {
-          let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
-            item.projectTestPath
-          } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
+    let obj;
+    let res = await that.interfaceModel.get(item.interface_id);
+    if (res) {
+      const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
+      return new Promise((resolve, reject) => {
+        let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
+          item.projectTestPath
+        } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
 
-          console.log('====================================');
-          console.log('执行命令:' + shellpy);
-          console.log('====================================');
-          shell.exec(shellpy, async function(code, stdout) {
-            console.log('===============stdout=====================');
-            console.log(stdout);
-            console.log('================stdoutend====================');
-            if (!_.isEmpty(stdout) && !_.isString(stdout)) {
+        console.log('====================================');
+        console.log('执行命令:' + shellpy);
+        console.log('====================================');
+        shell.exec(shellpy, async function(code, stdout) {
+          try {
+            if (!_.isEmpty(stdout)) {
               let result = JSON.parse(yapi.commons.trim(stdout));
               if (!_.isEmpty(result)) {
                 if (result.status == 'success') {
@@ -360,11 +357,12 @@ class openController extends baseController {
             } else {
               resolve({ errCode: 0, stdout });
             }
-          });
+          } catch (error) {
+            resolve({ errCode: 0, stdout });
+            console.log(error);
+          }
         });
-      }
-    } catch (error) {
-      console.log(error);
+      });
     }
   }
   async runLvYunTest(ctx) {
