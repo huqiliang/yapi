@@ -306,9 +306,6 @@ class openController extends baseController {
       let env = _.find(project.env, val => {
         return val.name === ctx.request.query.env;
       });
-      console.log('====================================');
-      console.log(env);
-      console.log('====================================');
       let item = {
         project_id: ctx.request.query.projectId,
         id: ctx.request.query.interFasceId,
@@ -319,6 +316,9 @@ class openController extends baseController {
       };
       if (item) {
         let result = await this.useSell(this, item);
+        console.log('============result========================');
+        console.log(result);
+        console.log('====================================');
         ctx.websocket.send(JSON.stringify(result));
       }
     } catch (error) {
@@ -340,7 +340,10 @@ class openController extends baseController {
           console.log('执行命令:' + shellpy);
           console.log('====================================');
           shell.exec(shellpy, async function(code, stdout) {
-            if (!_.isEmpty(stdout)) {
+            console.log('===============stdout=====================');
+            console.log(stdout);
+            console.log('================stdoutend====================');
+            if (!_.isEmpty(stdout) && !_.isString(stdout)) {
               let result = JSON.parse(yapi.commons.trim(stdout));
               if (!_.isEmpty(result)) {
                 if (result.status == 'success') {
@@ -352,10 +355,10 @@ class openController extends baseController {
                 await that.interfaceModel.save(obj);
                 resolve(result);
               } else {
-                reject({ errCode: 0 });
+                resolve({ errCode: 0, stdout });
               }
             } else {
-              reject({ errCode: 0 });
+              resolve({ errCode: 0, stdout });
             }
           });
         });

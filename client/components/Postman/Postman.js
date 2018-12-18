@@ -1173,6 +1173,8 @@ export default class Run extends Component {
                   正在跑测试用例,请不要刷新浏览器或关闭窗口
                 </div>
               </div>
+            ) : this.state.testData.errCode === 0 ? (
+              <span>出错了:{this.state.testData.stdout}</span>
             ) : (
               <div>
                 <p>
