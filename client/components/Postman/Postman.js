@@ -577,7 +577,6 @@ export default class Run extends Component {
         ws.onclose = () => {
           console.log('websocket close');
           this.setState({
-            testData: '',
             webSocketOpen: false
           });
         };
