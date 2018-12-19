@@ -77,7 +77,13 @@ class Reg extends Component {
         {/* 用户名 */}
         <FormItem style={formItemStyle}>
           {getFieldDecorator('userName', {
-            rules: [{ required: true, message: '请输入用户名!' }]
+            rules: [
+              {
+                required: true,
+                pattern: /[\u4e00-\u9fa5]/gm,
+                message: '请输入中文真实用户名!'
+              }
+            ]
           })(
             <Input
               style={changeHeight}
@@ -93,8 +99,8 @@ class Reg extends Component {
             rules: [
               {
                 required: true,
-                message: '请输入email!',
-                pattern: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{1,})+$/
+                message: '请输入正确的公司邮箱',
+                pattern: /^\w+([\.-]?\w+)*@(ipms|ihotel)\.cn$/
               }
             ]
           })(
