@@ -17,7 +17,7 @@ const {
 } = require('../../common/postmanLib');
 const { handleParamsValue, ArrayToObject } = require('../../common/utils.js');
 const renderToHtml = require('../utils/reportHtml');
-const axios = require('axios');
+// const axios = require('axios');
 const HanldeImportData = require('../../common/HandleImportData');
 const _ = require('underscore');
 
@@ -328,12 +328,15 @@ class openController extends baseController {
   async useSell(that, item) {
     let obj;
     let res = await that.interfaceModel.get(item.interface_id);
-    if (res) {
+    let project = await that.projectModel.get(item.project_id);
+    if (res && project) {
       const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
-      return new Promise((resolve, reject) => {
+      return new Promise(resolve => {
         let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
           item.projectTestPath
-        } -p ${item.path}.jmx -o ${item.project_id}/${item.id}`;
+        } -p ${project.basepath}${item.path}.jmx -o ${item.project_id}/${
+          item.id
+        }`;
 
         console.log('====================================');
         console.log('执行命令:' + shellpy);
