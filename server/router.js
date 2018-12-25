@@ -283,6 +283,11 @@ let routerConfig = {
       action: 'swaggerUrl',
       path: 'swagger_url',
       method: 'get'
+    },
+    {
+      action: 'asyncRap',
+      path: 'async_rap',
+      method: 'post'
     }
   ],
   interface: [

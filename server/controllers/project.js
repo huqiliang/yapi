@@ -1,6 +1,7 @@
 const projectModel = require('../models/project.js');
 const yapi = require('../yapi.js');
 const _ = require('underscore');
+const _$ = require('lodash');
 const baseController = require('./base.js');
 const interfaceModel = require('../models/interface.js');
 const interfaceColModel = require('../models/interfaceCol.js');
@@ -13,7 +14,7 @@ const logModel = require('../models/log.js');
 const followModel = require('../models/follow.js');
 const tokenModel = require('../models/token.js');
 const url = require('url');
-
+const axios = require('axios');
 const sha = require('sha.js');
 
 class projectController extends baseController {
@@ -25,6 +26,7 @@ class projectController extends baseController {
     this.followModel = yapi.getInst(followModel);
     this.tokenModel = yapi.getInst(tokenModel);
     this.interfaceModel = yapi.getInst(interfaceModel);
+    this.interfaceCatModel = yapi.getInst(interfaceCatModel);
 
     const id = 'number';
     const member_uid = ['number'];
@@ -192,7 +194,10 @@ class projectController extends baseController {
       return (ctx.body = yapi.commons.resReturn(null, 405, '没有权限'));
     }
 
-    let checkRepeat = await this.Model.checkNameRepeat(params.name, params.group_id);
+    let checkRepeat = await this.Model.checkNameRepeat(
+      params.name,
+      params.group_id
+    );
 
     if (checkRepeat > 0) {
       return (ctx.body = yapi.commons.resReturn(null, 401, '已存在的项目名'));
@@ -328,7 +333,9 @@ class projectController extends baseController {
           let catResult = await catInst.save(catDate);
 
           // 获取每个集合中的interface
-          let interfaceData = await this.interfaceModel.listByInterStatus(item._id);
+          let interfaceData = await this.interfaceModel.listByInterStatus(
+            item._id
+          );
 
           // 将interfaceData存到新的catID中
           for (let key = 0; key < interfaceData.length; key++) {
@@ -397,7 +404,8 @@ class projectController extends baseController {
       return (ctx.body = yapi.commons.resReturn(null, 405, '没有权限'));
     }
 
-    params.role = ['owner', 'dev', 'guest'].find(v => v === params.role) || 'dev';
+    params.role =
+      ['owner', 'dev', 'guest'].find(v => v === params.role) || 'dev';
     let add_members = [];
     let exist_members = [];
     let no_members = [];
@@ -452,7 +460,10 @@ class projectController extends baseController {
     try {
       let params = ctx.params;
 
-      var check = await this.Model.checkMemberRepeat(params.id, params.member_uid);
+      var check = await this.Model.checkMemberRepeat(
+        params.id,
+        params.member_uid
+      );
       if (check === 0) {
         return (ctx.body = yapi.commons.resReturn(null, 400, '项目成员不存在'));
       }
@@ -644,7 +655,10 @@ class projectController extends baseController {
     let params = ctx.request.body;
     let projectInst = yapi.getInst(projectModel);
 
-    var check = await projectInst.checkMemberRepeat(params.id, params.member_uid);
+    var check = await projectInst.checkMemberRepeat(
+      params.id,
+      params.member_uid
+    );
     if (check === 0) {
       return (ctx.body = yapi.commons.resReturn(null, 400, '项目成员不存在'));
     }
@@ -652,14 +666,19 @@ class projectController extends baseController {
       return (ctx.body = yapi.commons.resReturn(null, 405, '没有权限'));
     }
 
-    params.role = ['owner', 'dev', 'guest'].find(v => v === params.role) || 'dev';
+    params.role =
+      ['owner', 'dev', 'guest'].find(v => v === params.role) || 'dev';
     let rolename = {
       owner: '组长',
       dev: '开发者',
       guest: '访客'
     };
 
-    let result = await projectInst.changeMemberRole(params.id, params.member_uid, params.role);
+    let result = await projectInst.changeMemberRole(
+      params.id,
+      params.member_uid,
+      params.role
+    );
 
     let username = this.getUsername();
     yapi
@@ -695,7 +714,10 @@ class projectController extends baseController {
     try {
       let params = ctx.request.body;
       let projectInst = yapi.getInst(projectModel);
-      var check = await projectInst.checkMemberRepeat(params.id, params.member_uid);
+      var check = await projectInst.checkMemberRepeat(
+        params.id,
+        params.member_uid
+      );
       if (check === 0) {
         return (ctx.body = yapi.commons.resReturn(null, 400, '项目成员不存在'));
       }
@@ -795,8 +817,14 @@ class projectController extends baseController {
       let projectData = await this.Model.get(id);
 
       if (params.basepath) {
-        if ((params.basepath = this.handleBasepath(params.basepath)) === false) {
-          return (ctx.body = yapi.commons.resReturn(null, 401, 'basepath格式有误'));
+        if (
+          (params.basepath = this.handleBasepath(params.basepath)) === false
+        ) {
+          return (ctx.body = yapi.commons.resReturn(
+            null,
+            401,
+            'basepath格式有误'
+          ));
         }
       }
 
@@ -805,9 +833,16 @@ class projectController extends baseController {
       }
 
       if (params.name) {
-        let checkRepeat = await this.Model.checkNameRepeat(params.name, params.group_id);
+        let checkRepeat = await this.Model.checkNameRepeat(
+          params.name,
+          params.group_id
+        );
         if (checkRepeat > 0) {
-          return (ctx.body = yapi.commons.resReturn(null, 401, '已存在的项目名'));
+          return (ctx.body = yapi.commons.resReturn(
+            null,
+            401,
+            '已存在的项目名'
+          ));
         }
       }
 
@@ -862,7 +897,11 @@ class projectController extends baseController {
       }
 
       if (!params.env || !Array.isArray(params.env)) {
-        return (ctx.body = yapi.commons.resReturn(null, 405, 'env参数格式有误'));
+        return (ctx.body = yapi.commons.resReturn(
+          null,
+          405,
+          'env参数格式有误'
+        ));
       }
 
       let projectData = await this.Model.get(id);
@@ -918,7 +957,11 @@ class projectController extends baseController {
       }
 
       if (!params.tag || !Array.isArray(params.tag)) {
-        return (ctx.body = yapi.commons.resReturn(null, 405, 'tag参数格式有误'));
+        return (ctx.body = yapi.commons.resReturn(
+          null,
+          405,
+          'tag参数格式有误'
+        ));
       }
 
       let projectData = await this.Model.get(id);
@@ -1123,6 +1166,181 @@ class projectController extends baseController {
     } catch (err) {
       ctx.body = yapi.commons.resReturn(null, 402, err.message);
     }
+  }
+  async asyncRap(ctx) {
+    try {
+      let projectId = ctx.request.body.projectId;
+      let rapProjectId = ctx.request.body.rapProjectId;
+      await axios.get(
+        'http://api.ipms.cn/workspace/myWorkspace.do?projectId=' + rapProjectId
+      );
+      const res = await axios({
+        method: 'POST',
+        url: 'http://api.ipms.cn/workspace/loadWorkspace.do',
+        data: {
+          projectId: rapProjectId
+        },
+        transformRequest: [
+          function(data) {
+            // 做任何你想要的数据转换
+            let ret = '';
+            for (let it in data) {
+              ret +=
+                encodeURIComponent(it) +
+                '=' +
+                encodeURIComponent(data[it]) +
+                '&';
+            }
+            return ret;
+          }
+        ],
+        transformResponse: [
+          function(data) {
+            try {
+              const fs = require('fs');
+              fs.writeFileSync('test1.json', data);
+              let reg = /@mock=.+?(?=",)/g;
+              let res = data.replace(reg, '');
+              let res2 = res.replace(/\\'/g, '');
+              let res3 = res2.replace(/\s/g, '');
+              // let res3 = res2.replace(/第三方类型  	  微信：WEIXIN/, '');
+              fs.writeFileSync('test2.json', res3);
+              return JSON.parse(res3);
+            } catch (error) {
+              console.log('====================================');
+              console.log(error);
+              console.log('====================================');
+            }
+          }
+        ]
+      });
+      let project = await this.Model.get(projectId);
+      if (_.has(res.data, 'projectData')) {
+        let projectData = res.data.projectData;
+        let name = projectData.user.name;
+        let methods = ['', 'GET', 'POST', 'PUT', 'DELETE'];
+        let errList = [];
+        if (_.indexOf(_.map(project.members, 'username'), name) > -1) {
+          _.map(projectData.moduleList, moduleOption => {
+            let moduleName = moduleOption.name;
+            _.map(moduleOption.pageList, async page => {
+              let pageName = page.name;
+              let interfaceCat = {
+                name: `${moduleName}_${pageName}`,
+                project_id: projectId,
+                desc: page.introduction,
+                uid: this.getUid()
+              };
+              let res = await this.interfaceCatModel.save(interfaceCat);
+
+              _.map(page.actionList, async action => {
+                const { name, requestUrl, requestType, description } = action;
+                let req_query = [];
+                let appendType;
+                let res_body = {
+                  $schema: 'http://json-schema.org/draft-04/schema#',
+                  type: 'object',
+                  properties: {}
+                };
+                let req_body_other = {
+                  $schema: 'http://json-schema.org/draft-04/schema#',
+                  type: 'object',
+                  properties: {}
+                };
+                _.map(action.requestParameterList, param => {
+                  req_query.push({
+                    name: param.identifier,
+                    example: param.remark,
+                    desc: param.name
+                  });
+                });
+                function pushItem(val, content) {
+                  if (
+                    _.has(val, 'parameterList') &&
+                    !_.isEmpty('parameterList')
+                  ) {
+                    _.map(val.parameterList, item => {
+                      let val3 = {
+                        description: item.name,
+                        type: /array/.test(item.dataType)
+                          ? 'array'
+                          : item.dataType,
+                        properties: {}
+                      };
+                      _$.set(content.properties, item.identifier, val3);
+                      pushItem(item, val3);
+                    });
+                  }
+                }
+                function eachList(val, properties) {
+                  let obj = {
+                    description: val.name,
+                    type: /array/.test(val.dataType) ? 'array' : val.dataType,
+                    properties: {}
+                  };
+                  pushItem(val, obj);
+                  _$.set(properties, val.identifier, obj);
+                }
+                _.map(action.responseParameterList, val => {
+                  eachList(val, res_body.properties);
+                });
+                _.map(action.requestParameterList, val => {
+                  eachList(val, req_body_other.properties);
+                });
+                if (requestType == 1) {
+                  appendType = {
+                    req_query
+                  };
+                } else {
+                  appendType = {
+                    req_body_is_json_schema: true,
+                    req_body_type: 'json',
+                    req_body_other: JSON.stringify(req_body_other)
+                  };
+                }
+                let interfaceOption = {
+                  title: name,
+                  uid: this.getUid(),
+                  path: _$.isEmpty(requestUrl) ? this.getUid() : requestUrl,
+                  method: _$.isEmpty(methods[requestType])
+                    ? 'GET'
+                    : methods[requestType],
+                  project_id: projectId,
+                  catid: res._id,
+                  status: 'done',
+                  desc: description,
+                  add_time: yapi.commons.time(),
+                  up_time: yapi.commons.time(),
+                  res_body: JSON.stringify(res_body),
+                  res_body_type: 'json',
+                  res_body_is_json_schema: true,
+                  ...appendType
+                };
+                if (_.isEmpty(requestUrl)) {
+                  errList.push(name + '的接口路径不存在,请完善');
+                }
+                if (_.isEmpty(requestType)) {
+                  errList.push(
+                    name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
+                  );
+                }
+                await this.interfaceModel.save(interfaceOption);
+              });
+            });
+          });
+          console.log('==========c==========================');
+          ctx.body = { errorCode: 0, errorMsg: '导入成功', errList };
+        } else {
+          ctx.body = { errorCode: 500, errorMsg: '你没有权限导入' };
+        }
+      } else {
+        ctx.body = { errorCode: 500, errorMsg: res.data };
+      }
+    } catch (error) {
+      ctx.body = { errorCode: 404, errorMsg: error };
+    }
+
+    //let result = await yapi.commons.createWebAPIRequest(ops);
   }
 }
 

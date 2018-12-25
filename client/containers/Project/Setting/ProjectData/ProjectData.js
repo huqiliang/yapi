@@ -16,6 +16,7 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import './ProjectData.scss';
+import _ from 'underscore';
 import axios from 'axios';
 
 import URL from 'url';
@@ -54,6 +55,7 @@ function handleExportRouteParams(url, status, isWiki) {
     return {
       curCatid: -(-state.inter.curdata.catid),
       basePath: state.project.currProject.basepath,
+      projectId: state.project.currProject._id,
       updateLogList: state.news.updateLogList,
       swaggerUrlData: state.project.swaggerUrlData
     };
@@ -77,6 +79,7 @@ class ProjectData extends Component {
       exportContent: 'all',
       isSwaggerUrl: false,
       swaggerUrl: '',
+      rapProjectId: null,
       isWiki: false
     };
   }
@@ -84,6 +87,7 @@ class ProjectData extends Component {
     match: PropTypes.object,
     curCatid: PropTypes.number,
     basePath: PropTypes.string,
+    projectId: PropTypes.number,
     saveImportData: PropTypes.func,
     fetchUpdateLogData: PropTypes.func,
     updateLogList: PropTypes.array,
@@ -92,17 +96,23 @@ class ProjectData extends Component {
   };
 
   componentWillMount() {
-    axios.get(`/api/interface/getCatMenu?project_id=${this.props.match.params.id}`).then(data => {
-      if (data.data.errcode === 0) {
-        let menuList = data.data.data;
-        this.setState({
-          menuList: menuList,
-          selectCatid: menuList[0]._id
-        });
-      }
-    });
+    axios
+      .get(`/api/interface/getCatMenu?project_id=${this.props.match.params.id}`)
+      .then(data => {
+        if (data.data.errcode === 0) {
+          let menuList = data.data.data;
+          this.setState({
+            menuList: menuList,
+            selectCatid: menuList[0]._id
+          });
+        }
+      });
     plugin.emitHook('import_data', importDataModule);
-    plugin.emitHook('export_data', exportDataModule, this.props.match.params.id);
+    plugin.emitHook(
+      'export_data',
+      exportDataModule,
+      this.props.match.params.id
+    );
   }
 
   selectChange(value) {
@@ -147,7 +157,9 @@ class ProjectData extends Component {
       let reader = new FileReader();
       reader.readAsText(info.file);
       reader.onload = async res => {
-        res = await importDataModule[this.state.curImportType].run(res.target.result);
+        res = await importDataModule[this.state.curImportType].run(
+          res.target.result
+        );
         if (this.state.dataSync === 'merge') {
           // 开启同步
           this.showConfirm(res);
@@ -190,12 +202,17 @@ class ProjectData extends Component {
             {domainData.map((item, index) => {
               return (
                 <div key={index} className="postman-dataImport-show-diff">
-                  <span className="logcontent" dangerouslySetInnerHTML={{ __html: item.content }} />
+                  <span
+                    className="logcontent"
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
                 </div>
               );
             })}
           </div>
-          <p className="info">温馨提示： 数据同步后，可能会造成原本的修改数据丢失</p>
+          <p className="info">
+            温馨提示： 数据同步后，可能会造成原本的修改数据丢失
+          </p>
         </div>
       ),
       async onOk() {
@@ -209,6 +226,9 @@ class ProjectData extends Component {
   };
 
   handleImportType = val => {
+    console.log('====================================');
+    console.log(val);
+    console.log('====================================');
     this.setState({
       curImportType: val,
       isSwaggerUrl: false
@@ -242,6 +262,11 @@ class ProjectData extends Component {
       swaggerUrl: url
     });
   };
+  rapInput = value => {
+    this.setState({
+      rapProjectId: value
+    });
+  };
 
   // url导入上传
   onUrlUpload = async () => {
@@ -258,7 +283,9 @@ class ProjectData extends Component {
         // 处理swagger url 导入
         await this.props.handleSwaggerUrlData(this.state.swaggerUrl);
         // let result = json5_parse(this.props.swaggerUrlData)
-        let res = await importDataModule[this.state.curImportType].run(this.props.swaggerUrlData);
+        let res = await importDataModule[this.state.curImportType].run(
+          this.props.swaggerUrlData
+        );
         if (this.state.dataSync === 'merge') {
           // merge
           this.showConfirm(res);
@@ -274,7 +301,66 @@ class ProjectData extends Component {
       message.error('请选择上传的默认分类');
     }
   };
+  importFromRap = async () => {
+    if (!this.state.rapProjectId) {
+      return message.error('请选择输入一个rap上的项目id');
+    } else {
+      this.setState({ showLoading: true });
+      try {
+        // let domain =
+        //   location.hostname + (location.port !== '' ? ':' + location.port : '');
+        // //因后端 node 仅支持 ws， 暂不支持 wss
+        // let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
+        // // let options = handleParams(this.state, this.handleValue);
+        // const ws = new WebSocket(
+        //   wsProtocol + '://' + domain + '/api/project/ws_async_rap'
+        // );
+        // ws.onopen = () => {
+        //   ws.send('beginTest');
+        // };
 
+        // ws.onmessage = e => {
+        //   console.log('====================================');
+        //   console.log(e);
+        //   console.log('====================================');
+        // };
+        // ws.onclose = () => {
+        //   console.log('websocket close');
+        // };
+
+        let res = await axios.post('/api/project/async_rap', {
+          rapProjectId: this.state.rapProjectId,
+          projectId: this.props.projectId
+        });
+        console.log('====================================');
+        console.log(res);
+        console.log('====================================');
+
+        if (res.data && res.data.errorCode == 0) {
+          if (res.data.errList && res.data.errList.length > 0) {
+            Modal.info({
+              title: res.data.errorMsg,
+              content: (
+                <div>
+                  {_.map(res.data.errList, val => {
+                    return <p>{val}</p>;
+                  })}
+                </div>
+              ),
+              onOk() {}
+            });
+          } else {
+            message.success(res.data.errorMsg);
+          }
+        } else {
+          message.error(res.data.errorMsg);
+        }
+      } catch (e) {
+        this.setState({ showLoading: false });
+        message.error(e.message);
+      }
+    }
+  };
   // 处理导出接口是全部还是公开
   handleChange = e => {
     this.setState({ exportContent: e.target.value });
@@ -357,7 +443,9 @@ class ProjectData extends Component {
                   optionFilterProp="children"
                   onChange={this.selectChange.bind(this)}
                   filterOption={(input, option) =>
-                    option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    option.props.children
+                      .toLowerCase()
+                      .indexOf(input.toLowerCase()) >= 0
                   }
                 >
                   {this.state.menuList.map((item, key) => {
@@ -380,12 +468,14 @@ class ProjectData extends Component {
                         <br />
                         <h3 style={{ color: 'white' }}>智能合并</h3>
                         <p>
-                          已存在的接口，将合并返回数据的 response，适用于导入了 swagger
-                          数据，保留对数据结构的改动
+                          已存在的接口，将合并返回数据的 response，适用于导入了
+                          swagger 数据，保留对数据结构的改动
                         </p>
                         <br />
                         <h3 style={{ color: 'white' }}>完全覆盖</h3>
-                        <p>不保留旧数据，完全使用新数据，适用于接口定义完全交给后端定义</p>
+                        <p>
+                          不保留旧数据，完全使用新数据，适用于接口定义完全交给后端定义
+                        </p>
                       </div>
                     }
                   >
@@ -410,10 +500,27 @@ class ProjectData extends Component {
                     &nbsp;&nbsp;
                   </span>
 
-                  <Switch checked={this.state.isSwaggerUrl} onChange={this.handleUrlChange} />
+                  <Switch
+                    checked={this.state.isSwaggerUrl}
+                    onChange={this.handleUrlChange}
+                  />
                 </div>
               )}
-              {this.state.isSwaggerUrl ? (
+              {this.state.curImportType === 'rap' ? (
+                <div className="import-content url-import-content">
+                  <Input
+                    placeholder="请输入你的rap上的项目id"
+                    onChange={e => this.rapInput(e.target.value)}
+                  />
+                  <Button
+                    onClick={this.importFromRap}
+                    className="url-btn"
+                    type="primary"
+                  >
+                    导入
+                  </Button>
+                </div>
+              ) : this.state.isSwaggerUrl ? (
                 <div className="import-content url-import-content">
                   <Input
                     placeholder="http://demo.swagger.io/v2/swagger.json"
@@ -435,7 +542,9 @@ class ProjectData extends Component {
                       <p className="ant-upload-drag-icon">
                         <Icon type="inbox" />
                       </p>
-                      <p className="ant-upload-text">点击或者拖拽文件到上传区域</p>
+                      <p className="ant-upload-text">
+                        点击或者拖拽文件到上传区域
+                      </p>
                       <p
                         className="ant-upload-hint"
                         onClick={e => {
@@ -464,7 +573,10 @@ class ProjectData extends Component {
                 <h3>数据导出</h3>
               </div>
               <div className="dataImportTile">
-                <Select placeholder="请选择导出数据的方式" onChange={this.handleExportType}>
+                <Select
+                  placeholder="请选择导出数据的方式"
+                  onChange={this.handleExportType}
+                >
                   {Object.keys(exportDataModule).map(name => {
                     return (
                       <Option key={name} value={name}>
@@ -484,14 +596,21 @@ class ProjectData extends Component {
               <div className="export-content">
                 {this.state.curExportType ? (
                   <div>
-                    <p className="export-desc">{exportDataModule[this.state.curExportType].desc}</p>
-                    <a 
+                    <p className="export-desc">
+                      {exportDataModule[this.state.curExportType].desc}
+                    </p>
+                    <a
                       target="_blank"
                       rel="noopener noreferrer"
-                      href={exportHref}>
-                      <Button className="export-button" type="primary" size="large">
+                      href={exportHref}
+                    >
+                      <Button
+                        className="export-button"
+                        type="primary"
+                        size="large"
+                      >
                         {' '}
-                        导出{' '}
+                        导出
                       </Button>
                     </a>
                     <Checkbox
@@ -507,7 +626,12 @@ class ProjectData extends Component {
                     </Checkbox>
                   </div>
                 ) : (
-                  <Button disabled className="export-button" type="primary" size="large">
+                  <Button
+                    disabled
+                    className="export-button"
+                    type="primary"
+                    size="large"
+                  >
                     {' '}
                     导出{' '}
                   </Button>

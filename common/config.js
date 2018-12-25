@@ -1,19 +1,31 @@
 module.exports = {
-  exts: [{
-    name: 'import-postman'
-  },{
-    name: 'import-har'
-  },{
-    name: 'advanced-mock'
-  },{
-    name: 'import-swagger'
-  },{
-    name: 'statistics'
-  },{
-    name: 'export-data'
-  },{
-    name: 'import-yapi-json'
-  },{
-    name: 'wiki'
-  }]
-}
+  exts: [
+    {
+      name: 'import-postman'
+    },
+    {
+      name: 'import-har'
+    },
+    {
+      name: 'advanced-mock'
+    },
+    {
+      name: 'import-swagger'
+    },
+    {
+      name: 'statistics'
+    },
+    {
+      name: 'export-data'
+    },
+    {
+      name: 'import-yapi-json'
+    },
+    {
+      name: 'import-rap'
+    },
+    {
+      name: 'wiki'
+    }
+  ]
+};
