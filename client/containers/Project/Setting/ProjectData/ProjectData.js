@@ -311,7 +311,6 @@ class ProjectData extends Component {
           rapProjectId: this.state.rapProjectId,
           projectId: this.props.projectId
         });
-
         if (res.data && res.data.errorCode == 0) {
           if (res.data.errList && res.data.errList.length > 0) {
             Modal.warn({
@@ -326,13 +325,12 @@ class ProjectData extends Component {
               onOk() {}
             });
           } else {
-            this.setState({ showLoading: false });
             message.success(res.data.errorMsg);
           }
         } else {
-          this.setState({ showLoading: false });
           message.error(res.data.errorMsg);
         }
+        this.setState({ showLoading: false });
       } catch (e) {
         this.setState({ showLoading: false });
         message.error(e.message);
