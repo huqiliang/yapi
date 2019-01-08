@@ -1313,14 +1313,11 @@ class projectController extends baseController {
                     projectId,
                     'rapId uid'
                   );
-                  console.log('====================================');
-                  console.log(interFaceAll);
-                  console.log('====================================');
                   let findInterFace = _.find(
                     interFaceAll,
                     item => item.rapId === action.id
                   );
-                  console.log(findInterFace);
+
                   let interfaceOption = {
                     title: name,
                     uid: !findInterFace ? this.getUid() : findInterFace.uid,
@@ -1349,9 +1346,9 @@ class projectController extends baseController {
                         name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
                       );
                     }
-                    await this.interfaceModel.save(interfaceOption);
+                    return await this.interfaceModel.save(interfaceOption);
                   } else {
-                    await this.interfaceModel.up(
+                    return await this.interfaceModel.up(
                       findInterFace._id,
                       interfaceOption
                     );

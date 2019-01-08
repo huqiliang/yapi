@@ -326,9 +326,11 @@ class ProjectData extends Component {
               onOk() {}
             });
           } else {
+            this.setState({ showLoading: false });
             message.success(res.data.errorMsg);
           }
         } else {
+          this.setState({ showLoading: false });
           message.error(res.data.errorMsg);
         }
       } catch (e) {
@@ -495,8 +497,9 @@ class ProjectData extends Component {
                     onClick={this.importFromRap}
                     className="url-btn"
                     type="primary"
+                    loading={this.state.showLoading}
                   >
-                    导入
+                    {this.state.showLoading ? '正在导入' : '开始导入'}
                   </Button>
                 </div>
               ) : this.state.isSwaggerUrl ? (
