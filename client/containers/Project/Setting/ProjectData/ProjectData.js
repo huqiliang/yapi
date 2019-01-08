@@ -332,9 +332,6 @@ class ProjectData extends Component {
           rapProjectId: this.state.rapProjectId,
           projectId: this.props.projectId
         });
-        console.log('====================================');
-        console.log(res);
-        console.log('====================================');
 
         if (res.data && res.data.errorCode == 0) {
           if (res.data.errList && res.data.errList.length > 0) {
@@ -457,39 +454,42 @@ class ProjectData extends Component {
                   })}
                 </Select>
               </div>
-              <div className="dataSync">
-                <span className="label">
-                  数据同步&nbsp;
-                  <Tooltip
-                    title={
-                      <div>
-                        <h3 style={{ color: 'white' }}>普通模式</h3>
-                        <p>不导入已存在的接口</p>
-                        <br />
-                        <h3 style={{ color: 'white' }}>智能合并</h3>
-                        <p>
-                          已存在的接口，将合并返回数据的 response，适用于导入了
-                          swagger 数据，保留对数据结构的改动
-                        </p>
-                        <br />
-                        <h3 style={{ color: 'white' }}>完全覆盖</h3>
-                        <p>
-                          不保留旧数据，完全使用新数据，适用于接口定义完全交给后端定义
-                        </p>
-                      </div>
-                    }
-                  >
-                    <Icon type="question-circle-o" />
-                  </Tooltip>{' '}
-                </span>
-                <Select value={this.state.dataSync} onChange={this.onChange}>
-                  <Option value="normal">普通模式</Option>
-                  <Option value="good">智能合并</Option>
-                  <Option value="merge">完全覆盖</Option>
-                </Select>
+              {this.state.curImportType !== 'rap' ? (
+                <div className="dataSync">
+                  <span className="label">
+                    数据同步&nbsp;
+                    <Tooltip
+                      title={
+                        <div>
+                          <h3 style={{ color: 'white' }}>普通模式</h3>
+                          <p>不导入已存在的接口</p>
+                          <br />
+                          <h3 style={{ color: 'white' }}>智能合并</h3>
+                          <p>
+                            已存在的接口，将合并返回数据的
+                            response，适用于导入了 swagger
+                            数据，保留对数据结构的改动
+                          </p>
+                          <br />
+                          <h3 style={{ color: 'white' }}>完全覆盖</h3>
+                          <p>
+                            不保留旧数据，完全使用新数据，适用于接口定义完全交给后端定义
+                          </p>
+                        </div>
+                      }
+                    >
+                      <Icon type="question-circle-o" />
+                    </Tooltip>{' '}
+                  </span>
+                  <Select value={this.state.dataSync} onChange={this.onChange}>
+                    <Option value="normal">普通模式</Option>
+                    <Option value="good">智能合并</Option>
+                    <Option value="merge">完全覆盖</Option>
+                  </Select>
 
-                {/* <Switch checked={this.state.dataSync} onChange={this.onChange} /> */}
-              </div>
+                  {/* <Switch checked={this.state.dataSync} onChange={this.onChange} /> */}
+                </div>
+              ) : null}
               {this.state.curImportType === 'swagger' && (
                 <div className="dataSync">
                   <span className="label">

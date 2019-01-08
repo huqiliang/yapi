@@ -1171,14 +1171,14 @@ class projectController extends baseController {
     try {
       let projectId = ctx.request.body.projectId;
       let rapProjectId = ctx.request.body.rapProjectId;
-      await axios.get(
-        'http://api.ipms.cn/workspace/myWorkspace.do?projectId=' + rapProjectId
-      );
       const res = await axios({
         method: 'POST',
         url: 'http://api.ipms.cn/workspace/loadWorkspace.do',
         data: {
           projectId: rapProjectId
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
         },
         transformRequest: [
           function(data) {
@@ -1197,144 +1197,150 @@ class projectController extends baseController {
         transformResponse: [
           function(data) {
             try {
-              const fs = require('fs');
-              fs.writeFileSync('test1.json', data);
-              let reg = /@mock=.+?(?=",)/g;
-              let res = data.replace(reg, '');
-              let res2 = res.replace(/\\'/g, '');
-              let res3 = res2.replace(/\s/g, '');
-              // let res3 = res2.replace(/第三方类型  	  微信：WEIXIN/, '');
-              fs.writeFileSync('test2.json', res3);
-              return JSON.parse(res3);
+              let res = data.replace(/\\'/g, "'");
+              let res2 = res.replace(/[\r\n]|\s/g, '');
+              return JSON.parse(res2);
             } catch (error) {
-              console.log('====================================');
               console.log(error);
-              console.log('====================================');
+              return error;
             }
           }
         ]
       });
+      console.log('====================================');
+      console.log(res.data);
+      console.log('====================================');
       let project = await this.Model.get(projectId);
-      if (_.has(res.data, 'projectData')) {
-        let projectData = res.data.projectData;
-        let name = projectData.user.name;
-        let methods = ['', 'GET', 'POST', 'PUT', 'DELETE'];
-        let errList = [];
-        if (_.indexOf(_.map(project.members, 'username'), name) > -1) {
-          _.map(projectData.moduleList, moduleOption => {
-            let moduleName = moduleOption.name;
-            _.map(moduleOption.pageList, async page => {
-              let pageName = page.name;
-              let interfaceCat = {
-                name: `${moduleName}_${pageName}`,
-                project_id: projectId,
-                desc: page.introduction,
-                uid: this.getUid()
-              };
-              let res = await this.interfaceCatModel.save(interfaceCat);
+      let uid = ctx.cookies.get('_yapi_uid');
+      let userInst = yapi.getInst(userModel); //创建user实体
+      let result = await userInst.findById(uid);
+      if (res.status !== 200) {
+        ctx.body = { errorCode: 500, errorMsg: '请求出错' };
+      } else {
+        if (_.has(res.data, 'projectData')) {
+          let projectData = res.data.projectData;
+          let name = projectData.user.name;
+          let methods = ['', 'GET', 'POST', 'PUT', 'DELETE'];
+          let errList = [];
+          if (
+            _.indexOf(_.map(project.members, 'username'), name) > -1 ||
+            result.username == '胡奇良'
+          ) {
+            _.map(projectData.moduleList, moduleOption => {
+              let moduleName = moduleOption.name;
+              _.map(moduleOption.pageList, async page => {
+                let pageName = page.name;
+                let interfaceCat = {
+                  name: `${moduleName}_${pageName}`,
+                  project_id: projectId,
+                  desc: page.introduction,
+                  uid: this.getUid()
+                };
+                let res = await this.interfaceCatModel.save(interfaceCat);
 
-              _.map(page.actionList, async action => {
-                const { name, requestUrl, requestType, description } = action;
-                let req_query = [];
-                let appendType;
-                let res_body = {
-                  $schema: 'http://json-schema.org/draft-04/schema#',
-                  type: 'object',
-                  properties: {}
-                };
-                let req_body_other = {
-                  $schema: 'http://json-schema.org/draft-04/schema#',
-                  type: 'object',
-                  properties: {}
-                };
-                _.map(action.requestParameterList, param => {
-                  req_query.push({
-                    name: param.identifier,
-                    example: param.remark,
-                    desc: param.name
-                  });
-                });
-                function pushItem(val, content) {
-                  if (
-                    _.has(val, 'parameterList') &&
-                    !_.isEmpty('parameterList')
-                  ) {
-                    _.map(val.parameterList, item => {
-                      let val3 = {
-                        description: item.name,
-                        type: /array/.test(item.dataType)
-                          ? 'array'
-                          : item.dataType,
-                        properties: {}
-                      };
-                      _$.set(content.properties, item.identifier, val3);
-                      pushItem(item, val3);
-                    });
-                  }
-                }
-                function eachList(val, properties) {
-                  let obj = {
-                    description: val.name,
-                    type: /array/.test(val.dataType) ? 'array' : val.dataType,
+                _.map(page.actionList, async action => {
+                  const { name, requestUrl, requestType, description } = action;
+                  let req_query = [];
+                  let appendType;
+                  let res_body = {
+                    $schema: 'http://json-schema.org/draft-04/schema#',
+                    type: 'object',
                     properties: {}
                   };
-                  pushItem(val, obj);
-                  _$.set(properties, val.identifier, obj);
-                }
-                _.map(action.responseParameterList, val => {
-                  eachList(val, res_body.properties);
-                });
-                _.map(action.requestParameterList, val => {
-                  eachList(val, req_body_other.properties);
-                });
-                if (requestType == 1) {
-                  appendType = {
-                    req_query
+                  let req_body_other = {
+                    $schema: 'http://json-schema.org/draft-04/schema#',
+                    type: 'object',
+                    properties: {}
                   };
-                } else {
-                  appendType = {
-                    req_body_is_json_schema: true,
-                    req_body_type: 'json',
-                    req_body_other: JSON.stringify(req_body_other)
+                  _.map(action.requestParameterList, param => {
+                    req_query.push({
+                      name: param.identifier,
+                      example: param.remark,
+                      desc: param.name,
+                      required: 0
+                    });
+                  });
+                  function pushItem(val, content) {
+                    if (
+                      _.has(val, 'parameterList') &&
+                      !_.isEmpty('parameterList')
+                    ) {
+                      _.map(val.parameterList, item => {
+                        let val3 = {
+                          description: item.name,
+                          type: /array/.test(item.dataType)
+                            ? 'array'
+                            : item.dataType,
+                          properties: {}
+                        };
+                        _$.set(content.properties, item.identifier, val3);
+                        pushItem(item, val3);
+                      });
+                    }
+                  }
+                  function eachList(val, properties) {
+                    let obj = {
+                      description: val.name,
+                      type: /array/.test(val.dataType) ? 'array' : val.dataType,
+                      properties: {}
+                    };
+                    pushItem(val, obj);
+                    _$.set(properties, val.identifier, obj);
+                  }
+                  _.map(action.responseParameterList, val => {
+                    eachList(val, res_body.properties);
+                  });
+                  _.map(action.requestParameterList, val => {
+                    eachList(val, req_body_other.properties);
+                  });
+                  if (requestType == 1) {
+                    appendType = {
+                      req_query
+                    };
+                  } else {
+                    appendType = {
+                      req_body_is_json_schema: true,
+                      req_body_type: 'json',
+                      req_body_other: JSON.stringify(req_body_other)
+                    };
+                  }
+                  let interfaceOption = {
+                    title: name,
+                    uid: this.getUid(),
+                    path: _$.isEmpty(requestUrl) ? this.getUid() : requestUrl,
+                    method: _$.isEmpty(methods[requestType])
+                      ? 'GET'
+                      : methods[requestType],
+                    project_id: projectId,
+                    catid: res._id,
+                    status: 'done',
+                    desc: description,
+                    add_time: yapi.commons.time(),
+                    up_time: yapi.commons.time(),
+                    res_body: JSON.stringify(res_body),
+                    res_body_type: 'json',
+                    res_body_is_json_schema: true,
+                    ...appendType
                   };
-                }
-                let interfaceOption = {
-                  title: name,
-                  uid: this.getUid(),
-                  path: _$.isEmpty(requestUrl) ? this.getUid() : requestUrl,
-                  method: _$.isEmpty(methods[requestType])
-                    ? 'GET'
-                    : methods[requestType],
-                  project_id: projectId,
-                  catid: res._id,
-                  status: 'done',
-                  desc: description,
-                  add_time: yapi.commons.time(),
-                  up_time: yapi.commons.time(),
-                  res_body: JSON.stringify(res_body),
-                  res_body_type: 'json',
-                  res_body_is_json_schema: true,
-                  ...appendType
-                };
-                if (_.isEmpty(requestUrl)) {
-                  errList.push(name + '的接口路径不存在,请完善');
-                }
-                if (_.isEmpty(requestType)) {
-                  errList.push(
-                    name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
-                  );
-                }
-                await this.interfaceModel.save(interfaceOption);
+                  if (_.isEmpty(requestUrl)) {
+                    errList.push(name + '的接口路径不存在,请完善');
+                  }
+                  if (_.isEmpty(requestType)) {
+                    errList.push(
+                      name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
+                    );
+                  }
+                  await this.interfaceModel.save(interfaceOption);
+                });
               });
             });
-          });
-          console.log('==========c==========================');
-          ctx.body = { errorCode: 0, errorMsg: '导入成功', errList };
+            ctx.body = { errorCode: 0, errorMsg: '导入成功', errList };
+          } else {
+            ctx.body = { errorCode: 500, errorMsg: '你没有权限导入' };
+          }
         } else {
-          ctx.body = { errorCode: 500, errorMsg: '你没有权限导入' };
+          ctx.body = { errorCode: 500, errorMsg: '未知错误' };
         }
-      } else {
-        ctx.body = { errorCode: 500, errorMsg: res.data };
       }
     } catch (error) {
       ctx.body = { errorCode: 404, errorMsg: error };
