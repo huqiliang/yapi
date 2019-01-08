@@ -307,27 +307,6 @@ class ProjectData extends Component {
     } else {
       this.setState({ showLoading: true });
       try {
-        // let domain =
-        //   location.hostname + (location.port !== '' ? ':' + location.port : '');
-        // //因后端 node 仅支持 ws， 暂不支持 wss
-        // let wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
-        // // let options = handleParams(this.state, this.handleValue);
-        // const ws = new WebSocket(
-        //   wsProtocol + '://' + domain + '/api/project/ws_async_rap'
-        // );
-        // ws.onopen = () => {
-        //   ws.send('beginTest');
-        // };
-
-        // ws.onmessage = e => {
-        //   console.log('====================================');
-        //   console.log(e);
-        //   console.log('====================================');
-        // };
-        // ws.onclose = () => {
-        //   console.log('websocket close');
-        // };
-
         let res = await axios.post('/api/project/async_rap', {
           rapProjectId: this.state.rapProjectId,
           projectId: this.props.projectId
@@ -335,8 +314,8 @@ class ProjectData extends Component {
 
         if (res.data && res.data.errorCode == 0) {
           if (res.data.errList && res.data.errList.length > 0) {
-            Modal.info({
-              title: res.data.errorMsg,
+            Modal.warn({
+              title: res.data.errorMsg + '但有一些错误信息如下:',
               content: (
                 <div>
                   {_.map(res.data.errList, val => {

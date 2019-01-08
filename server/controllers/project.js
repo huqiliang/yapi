@@ -14,6 +14,7 @@ const logModel = require('../models/log.js');
 const followModel = require('../models/follow.js');
 const tokenModel = require('../models/token.js');
 const url = require('url');
+var Promise = require('bluebird');
 const axios = require('axios');
 const sha = require('sha.js');
 
@@ -1207,9 +1208,6 @@ class projectController extends baseController {
           }
         ]
       });
-      console.log('====================================');
-      console.log(res.data);
-      console.log('====================================');
       let project = await this.Model.get(projectId);
       let uid = ctx.cookies.get('_yapi_uid');
       let userInst = yapi.getInst(userModel); //创建user实体
@@ -1226,9 +1224,9 @@ class projectController extends baseController {
             _.indexOf(_.map(project.members, 'username'), name) > -1 ||
             result.username == '胡奇良'
           ) {
-            _.map(projectData.moduleList, moduleOption => {
+            await Promise.map(projectData.moduleList, moduleOption => {
               let moduleName = moduleOption.name;
-              _.map(moduleOption.pageList, async page => {
+              return Promise.map(moduleOption.pageList, async page => {
                 let pageName = page.name;
                 let interfaceCat = {
                   name: `${moduleName}_${pageName}`,
@@ -1238,7 +1236,7 @@ class projectController extends baseController {
                 };
                 let res = await this.interfaceCatModel.save(interfaceCat);
 
-                _.map(page.actionList, async action => {
+                return Promise.map(page.actionList, async action => {
                   const { name, requestUrl, requestType, description } = action;
                   let req_query = [];
                   let appendType;
@@ -1334,15 +1332,18 @@ class projectController extends baseController {
                 });
               });
             });
-            ctx.body = { errorCode: 0, errorMsg: '导入成功', errList };
+            ctx.body = { errorCode: 0, errorMsg: '导入成功!', errList };
           } else {
-            ctx.body = { errorCode: 500, errorMsg: '你没有权限导入' };
+            ctx.body = { errorCode: 500, errorMsg: '你没有权限导入!' };
           }
         } else {
-          ctx.body = { errorCode: 500, errorMsg: '未知错误' };
+          ctx.body = { errorCode: 500, errorMsg: '未知错误!' };
         }
       }
     } catch (error) {
+      console.log('====================================');
+      console.log(error);
+      console.log('====================================');
       ctx.body = { errorCode: 404, errorMsg: error };
     }
 
