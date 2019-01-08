@@ -1228,14 +1228,21 @@ class projectController extends baseController {
               let moduleName = moduleOption.name;
               return Promise.map(moduleOption.pageList, async page => {
                 let pageName = page.name;
+                let catName = `${moduleName}_${pageName}`;
                 let interfaceCat = {
-                  name: `${moduleName}_${pageName}`,
+                  name: catName,
                   project_id: projectId,
                   desc: page.introduction,
                   uid: this.getUid()
                 };
-                let res = await this.interfaceCatModel.save(interfaceCat);
-
+                let res;
+                let catAll = await this.interfaceCatModel.list(projectId);
+                let findCat = _.find(catAll, item => item.name === catName);
+                if (!findCat) {
+                  res = await this.interfaceCatModel.save(interfaceCat);
+                } else {
+                  res = findCat;
+                }
                 return Promise.map(page.actionList, async action => {
                   const { name, requestUrl, requestType, description } = action;
                   let req_query = [];
@@ -1302,9 +1309,21 @@ class projectController extends baseController {
                       req_body_other: JSON.stringify(req_body_other)
                     };
                   }
+                  let interFaceAll = await this.interfaceModel.list(
+                    projectId,
+                    'rapId uid'
+                  );
+                  console.log('====================================');
+                  console.log(interFaceAll);
+                  console.log('====================================');
+                  let findInterFace = _.find(
+                    interFaceAll,
+                    item => item.rapId === action.id
+                  );
+                  console.log(findInterFace);
                   let interfaceOption = {
                     title: name,
-                    uid: this.getUid(),
+                    uid: !findInterFace ? this.getUid() : findInterFace.uid,
                     path: _$.isEmpty(requestUrl) ? this.getUid() : requestUrl,
                     method: _$.isEmpty(methods[requestType])
                       ? 'GET'
@@ -1318,17 +1337,25 @@ class projectController extends baseController {
                     res_body: JSON.stringify(res_body),
                     res_body_type: 'json',
                     res_body_is_json_schema: true,
+                    rapId: action.id,
                     ...appendType
                   };
-                  if (_.isEmpty(requestUrl)) {
-                    errList.push(name + '的接口路径不存在,请完善');
-                  }
-                  if (_.isEmpty(requestType)) {
-                    errList.push(
-                      name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
+                  if (!findInterFace) {
+                    if (_.isEmpty(requestUrl)) {
+                      errList.push(name + '的接口路径不存在,请完善');
+                    }
+                    if (_.isEmpty(requestType)) {
+                      errList.push(
+                        name + '的接口方法没设置,已自动设置为GET,请注意完善修改'
+                      );
+                    }
+                    await this.interfaceModel.save(interfaceOption);
+                  } else {
+                    await this.interfaceModel.up(
+                      findInterFace._id,
+                      interfaceOption
                     );
                   }
-                  await this.interfaceModel.save(interfaceOption);
                 });
               });
             });
