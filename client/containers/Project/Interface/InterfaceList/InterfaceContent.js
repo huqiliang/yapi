@@ -8,6 +8,7 @@ import { Prompt } from 'react-router';
 import { fetchInterfaceData } from '../../../../reducer/modules/interface.js';
 import { withRouter } from 'react-router-dom';
 import Run from './Run/Run.js';
+import TestResult from './TestResult.js';
 const plugin = require('client/plugin.js');
 
 const TabPane = Tabs.TabPane;
@@ -127,7 +128,10 @@ class Content extends Component {
     };
 
     plugin.emitHook('interface_tab', InterfaceTabs);
-
+    InterfaceTabs.testResult = {
+      component: TestResult,
+      name: '测试结果'
+    };
     const tabs = (
       <Tabs
         className="tabs-large"
@@ -150,7 +154,9 @@ class Content extends Component {
     return (
       <div className="interface-content">
         <Prompt
-          when={this.state.curtab === 'edit' && this.props.editStatus ? true : false}
+          when={
+            this.state.curtab === 'edit' && this.props.editStatus ? true : false
+          }
           message={() => {
             // this.showModal();
             return '离开页面会丢失当前编辑的内容，确定要离开吗？';

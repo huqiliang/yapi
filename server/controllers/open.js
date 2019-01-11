@@ -4,6 +4,7 @@ const interfaceCaseModel = require('../models/interfaceCase.js');
 const interfaceModel = require('../models/interface.js');
 const interfaceCatModel = require('../models/interfaceCat.js');
 const followModel = require('../models/follow.js');
+const testResult = require('../models/testResult.js');
 const userModel = require('../models/user.js');
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
@@ -39,6 +40,7 @@ class openController extends baseController {
     this.interfaceCatModel = yapi.getInst(interfaceCatModel);
     this.followModel = yapi.getInst(followModel);
     this.userModel = yapi.getInst(userModel);
+    this.testResult = yapi.getInst(testResult);
     this.handleValue = this.handleValue.bind(this);
     this.schemaMap = {
       runAutoTest: {
@@ -316,9 +318,16 @@ class openController extends baseController {
       };
       if (item) {
         let result = await this.useSell(this, item);
-        console.log('============result========================');
-        console.log(result);
-        console.log('====================================');
+        if (result && result.status) {
+          await this.testResult.save({
+            uid: this.getUid(),
+            project_id: item.project_id,
+            env: item.env.name,
+            interface_id: item.interface_id,
+            add_time: yapi.commons.time(),
+            ...result
+          });
+        }
         ctx.websocket.send(JSON.stringify(result));
       }
     } catch (error) {

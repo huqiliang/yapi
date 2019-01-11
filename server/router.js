@@ -4,6 +4,7 @@ const groupController = require('./controllers/group.js');
 const userController = require('./controllers/user.js');
 const interfaceColController = require('./controllers/interfaceCol.js');
 const testController = require('./controllers/test.js');
+const testResultController = require('./controllers/testResut.js');
 
 const yapi = require('./yapi.js');
 const projectController = require('./controllers/project.js');
@@ -46,6 +47,10 @@ let INTERFACE_CONFIG = {
   test: {
     prefix: '/test/',
     controller: testController
+  },
+  testResult: {
+    prefix: '/testResult/',
+    controller: testResultController
   },
   open: {
     prefix: '/open/',
@@ -495,6 +500,13 @@ let routerConfig = {
     {
       action: 'getCaseEnvList',
       path: 'case_env_list',
+      method: 'get'
+    }
+  ],
+  testResult: [
+    {
+      action: 'findSection',
+      path: 'findSection',
       method: 'get'
     }
   ],
