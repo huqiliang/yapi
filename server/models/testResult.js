@@ -75,7 +75,7 @@ class testResult extends baseModel {
 
   findSection(params) {
     return this.model
-      .find({
+      .findOne({
         project_id: params.project_id,
         interface_id: params.interface_id
       })

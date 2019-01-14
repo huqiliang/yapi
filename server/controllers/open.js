@@ -319,14 +319,31 @@ class openController extends baseController {
       if (item) {
         let result = await this.useSell(this, item);
         if (result && result.status) {
-          await this.testResult.save({
-            uid: this.getUid(),
+          let resTestResult = await this.testResult.findSection({
             project_id: item.project_id,
-            env: item.env.name,
-            interface_id: item.interface_id,
-            add_time: yapi.commons.time(),
-            ...result
+            interface_id: item.interface_id
           });
+          if (resTestResult) {
+            await this.testResult.update(
+              { _id: resTestResult._id },
+              {
+                project_id: item.project_id,
+                env: item.env.name,
+                interface_id: item.interface_id,
+                add_time: yapi.commons.time(),
+                ...result
+              }
+            );
+          } else {
+            await this.testResult.save({
+              uid: this.getUid(),
+              project_id: item.project_id,
+              env: item.env.name,
+              interface_id: item.interface_id,
+              add_time: yapi.commons.time(),
+              ...result
+            });
+          }
         }
         ctx.websocket.send(JSON.stringify(result));
       }
