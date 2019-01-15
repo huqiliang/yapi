@@ -4,6 +4,7 @@ import ProjectList from './ProjectList/ProjectList.js';
 import MemberList from './MemberList/MemberList.js';
 import GroupLog from './GroupLog/GroupLog.js';
 import GroupSetting from './GroupSetting/GroupSetting.js';
+import TestResultList from './TestResultList/TestResultList.js';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Route, Switch, Redirect } from 'react-router-dom';
@@ -12,6 +13,7 @@ const { Content, Sider } = Layout;
 const TabPane = Tabs.TabPane;
 import { fetchNewsData } from '../../reducer/modules/news.js';
 import './Group.scss';
+
 @connect(
   state => {
     return {
@@ -43,7 +45,13 @@ export default class Group extends Component {
   // }
   render() {
     const GroupContent = (
-      <Layout style={{ minHeight: 'calc(100vh - 100px)', marginLeft: '24px', marginTop: '24px' }}>
+      <Layout
+        style={{
+          minHeight: 'calc(100vh - 100px)',
+          marginLeft: '24px',
+          marginTop: '24px'
+        }}
+      >
         <Sider style={{ height: '100%' }} width={300}>
           <div className="logo" />
           <GroupList />
@@ -57,7 +65,11 @@ export default class Group extends Component {
               backgroundColor: '#fff'
             }}
           >
-            <Tabs type="card" className="m-tab tabs-large" style={{ height: '100%' }}>
+            <Tabs
+              type="card"
+              className="m-tab tabs-large"
+              style={{ height: '100%' }}
+            >
               <TabPane tab="项目列表" key="1">
                 <ProjectList />
               </TabPane>
@@ -66,18 +78,26 @@ export default class Group extends Component {
                   <MemberList />
                 </TabPane>
               ) : null}
-              {['admin', 'owner', 'guest', 'dev'].indexOf(this.props.curUserRoleInGroup) > -1 ||
-              this.props.curUserRole === 'admin' ? (
+              {['admin', 'owner', 'guest', 'dev'].indexOf(
+                this.props.curUserRoleInGroup
+              ) > -1 || this.props.curUserRole === 'admin' ? (
                 <TabPane tab="分组动态" key="3">
                   <GroupLog />
                 </TabPane>
               ) : (
                 ''
               )}
-              {(this.props.curUserRole === 'admin' || this.props.curUserRoleInGroup === 'owner') &&
+              {(this.props.curUserRole === 'admin' ||
+                this.props.curUserRoleInGroup === 'owner') &&
               this.props.currGroup.type !== 'private' ? (
                 <TabPane tab="分组设置" key="4">
                   <GroupSetting />
+                </TabPane>
+              ) : null}
+
+              {this.props.curUserRole === 'admin' ? (
+                <TabPane tab="测试结果集" key="5">
+                  <TestResultList />
                 </TabPane>
               ) : null}
             </Tabs>

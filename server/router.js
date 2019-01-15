@@ -513,6 +513,11 @@ let routerConfig = {
       action: 'findProjectTestResult',
       path: 'findProjectTestResult',
       method: 'get'
+    },
+    {
+      action: 'getAllResult',
+      path: 'getAllResult',
+      method: 'get'
     }
   ],
   test: [

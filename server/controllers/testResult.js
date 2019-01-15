@@ -1,8 +1,8 @@
+const _ = require('lodash');
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
 const testResultModel = require('../models/testResult.js');
 const dailyBuildStatistics = require('../models/dailyBuildStatistics.js');
-
 class interfaceColController extends baseController {
   constructor(ctx) {
     super(ctx);
@@ -34,6 +34,32 @@ class interfaceColController extends baseController {
       let params = ctx.request.query;
       let res = await this.dailyBuildStatistics.findOne(params);
       if (res) {
+        ctx.body = yapi.commons.resReturn(res);
+      } else {
+        ctx.body = yapi.commons.resReturn(null, 402, '错误');
+      }
+    } catch (e) {
+      ctx.body = yapi.commons.resReturn(null, 402, e.message);
+    }
+  }
+  async getAllResult(ctx) {
+    try {
+      let res = await this.dailyBuildStatistics.findAll();
+      if (res) {
+        _.map(res, (val, index) => {
+          _.map(val.details, item => {
+            if (val.daily == item.daily) {
+              console.log('====================================');
+              console.log(val.daily);
+              console.log('====================================');
+              _.set(res, index, {
+                ...val,
+                ...item
+              });
+              return;
+            }
+          });
+        });
         ctx.body = yapi.commons.resReturn(res);
       } else {
         ctx.body = yapi.commons.resReturn(null, 402, '错误');
