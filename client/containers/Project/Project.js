@@ -18,7 +18,8 @@ const plugin = require('client/plugin.js');
   state => {
     return {
       curProject: state.project.currProject,
-      currGroup: state.group.currGroup
+      currGroup: state.group.currGroup,
+      user: state.user
     };
   },
   {
@@ -35,7 +36,8 @@ export default class Project extends Component {
     location: PropTypes.object,
     fetchGroupMsg: PropTypes.func,
     setBreadcrumb: PropTypes.func,
-    currGroup: PropTypes.object
+    currGroup: PropTypes.object,
+    user: PropTypes.object
   };
 
   constructor(props) {
@@ -164,7 +166,14 @@ export default class Project extends Component {
         return item.name != '成员管理';
       });
     }
-
+    if (
+      this.props.curProject.role !== 'owner' &&
+      this.props.curProject.role !== 'admin'
+    ) {
+      subnavData = subnavData.filter(item => {
+        return item.name != '测试结果';
+      });
+    }
     if (Object.keys(this.props.curProject).length === 0) {
       return <Loading visible />;
     }

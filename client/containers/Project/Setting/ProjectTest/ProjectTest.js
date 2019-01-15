@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { PieChart, Pie, Sector } from 'recharts';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { connect } from 'react-redux';
+import _ from 'lodash';
 
 const renderActiveShape = props => {
   const RADIAN = Math.PI / 180;
@@ -89,6 +91,11 @@ renderActiveShape.propTypes = {
   percent: PropTypes.string,
   value: PropTypes.string
 };
+@connect(state => {
+  return {
+    project: state.project.currProject
+  };
+})
 class ProjectTest extends Component {
   constructor(props) {
     super(props);
@@ -98,10 +105,16 @@ class ProjectTest extends Component {
       activeIndex2: 0
     };
   }
+  static propTypes = {
+    project: PropTypes.object
+  };
   async componentWillMount() {
+    console.log('====================================');
+    console.log(this.props.project._id);
+    console.log('====================================');
     let res = await axios.get('/api/testResult/findProjectTestResult', {
       params: {
-        project_id: 32
+        project_id: this.props.project._id
       }
     });
     if (res && res.data && res.data.errcode == 0) {
@@ -139,13 +152,13 @@ class ProjectTest extends Component {
         <div className="message">{data.remark}</div>
         <div className="token">
           <span>详细信息:</span>
-          <div
-            style={{
-              display: 'flex'
-            }}
-          >
-            <PieChart width={500} height={400}>
-              {data01 ? (
+          {!_.isEmpty(data) ? (
+            <div
+              style={{
+                display: 'flex'
+              }}
+            >
+              <PieChart width={500} height={400}>
                 <Pie
                   activeIndex={this.state.activeIndex}
                   data={data01}
@@ -158,23 +171,25 @@ class ProjectTest extends Component {
                   outerRadius={80}
                   fill="#8884d8"
                 />
-              ) : null}
-            </PieChart>
-            <PieChart width={500} height={400}>
-              <Pie
-                activeIndex={this.state.activeIndex2}
-                data={data02}
-                activeShape={renderActiveShape}
-                onMouseEnter={this.onPieEnter2.bind(this)}
-                dataKey="value"
-                cx={300}
-                cy={200}
-                innerRadius={60}
-                outerRadius={80}
-                fill="#8884d8"
-              />
-            </PieChart>
-          </div>
+              </PieChart>
+              <PieChart width={500} height={400}>
+                <Pie
+                  activeIndex={this.state.activeIndex2}
+                  data={data02}
+                  activeShape={renderActiveShape}
+                  onMouseEnter={this.onPieEnter2.bind(this)}
+                  dataKey="value"
+                  cx={300}
+                  cy={200}
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                />
+              </PieChart>
+            </div>
+          ) : (
+            <span> 找不到相关结果</span>
+          )}
         </div>
       </div>
     );
