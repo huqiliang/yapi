@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { PieChart, Pie, Sector } from 'recharts';
+import { PieChart, Pie, Sector, Cell } from 'recharts';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { connect } from 'react-redux';
@@ -77,7 +77,7 @@ const renderActiveShape = props => {
     </g>
   );
 };
-
+const COLORS = ['#00C49F', '#FF8042'];
 renderActiveShape.propTypes = {
   cx: PropTypes.string,
   cy: PropTypes.string,
@@ -114,7 +114,7 @@ class ProjectTest extends Component {
     console.log('====================================');
     let res = await axios.get('/api/testResult/findProjectTestResult', {
       params: {
-        project_id: this.props.project._id
+        project_id: 32 //this.props.project._id
       }
     });
     if (res && res.data && res.data.errcode == 0) {
@@ -170,7 +170,11 @@ class ProjectTest extends Component {
                   innerRadius={60}
                   outerRadius={80}
                   fill="#8884d8"
-                />
+                >
+                  {data01.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
               </PieChart>
               <PieChart width={500} height={400}>
                 <Pie
@@ -184,7 +188,11 @@ class ProjectTest extends Component {
                   innerRadius={60}
                   outerRadius={80}
                   fill="#8884d8"
-                />
+                >
+                  {data02.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
               </PieChart>
             </div>
           ) : (

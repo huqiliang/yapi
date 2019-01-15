@@ -166,14 +166,14 @@ export default class Project extends Component {
         return item.name != '成员管理';
       });
     }
-    if (
-      this.props.curProject.role !== 'owner' &&
-      this.props.curProject.role !== 'admin'
-    ) {
-      subnavData = subnavData.filter(item => {
-        return item.name != '测试结果';
-      });
-    }
+    // if (
+    //   this.props.curProject.role !== 'owner' &&
+    //   this.props.curProject.role !== 'admin'
+    // ) {
+    //   subnavData = subnavData.filter(item => {
+    //     return item.name != '测试结果';
+    //   });
+    // }
     if (Object.keys(this.props.curProject).length === 0) {
       return <Loading visible />;
     }
