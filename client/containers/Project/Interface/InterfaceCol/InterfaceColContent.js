@@ -915,13 +915,13 @@ class InterfaceColContent extends Component {
                   </Button>
                 </Tooltip>
               )}
-              <Button
+              {/* <Button
                 style={{ marginLeft: '8px' }}
                 type="primary"
                 onClick={this.autoLvYunTests}
               >
                 绿云测试
-              </Button>
+              </Button> */}
             </div>
           </Col>
         </Row>

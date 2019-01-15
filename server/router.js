@@ -4,7 +4,7 @@ const groupController = require('./controllers/group.js');
 const userController = require('./controllers/user.js');
 const interfaceColController = require('./controllers/interfaceCol.js');
 const testController = require('./controllers/test.js');
-const testResultController = require('./controllers/testResut.js');
+const testResultController = require('./controllers/testResult.js');
 
 const yapi = require('./yapi.js');
 const projectController = require('./controllers/project.js');
@@ -507,6 +507,11 @@ let routerConfig = {
     {
       action: 'findSection',
       path: 'findSection',
+      method: 'get'
+    },
+    {
+      action: 'findProjectTestResult',
+      path: 'findProjectTestResult',
       method: 'get'
     }
   ],

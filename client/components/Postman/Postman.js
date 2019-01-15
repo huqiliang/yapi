@@ -706,15 +706,17 @@ export default class Run extends Component {
               {this.props.type === 'inter' ? '保存' : '更新'}
             </Button>
           </Tooltip>
-          <Tooltip placement="bottom" title={'绿云测试'}>
-            <Button
-              style={{ marginLeft: 10 }}
-              type="primary"
-              onClick={this.sendTest.bind(this)}
-            >
-              测试
-            </Button>
-          </Tooltip>
+          {this.props.type === 'inter' ? (
+            <Tooltip placement="bottom" title={'绿云测试'}>
+              <Button
+                style={{ marginLeft: 10 }}
+                type="primary"
+                onClick={this.sendTest.bind(this)}
+              >
+                测试
+              </Button>
+            </Tooltip>
+          ) : null}
         </div>
 
         <Collapse defaultActiveKey={['0', '1', '2', '3']} bordered={true}>
