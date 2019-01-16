@@ -25,6 +25,10 @@ export default class TestResultList extends Component {
         dataIndex: 'project_id'
       },
       {
+        title: '项目名称',
+        dataIndex: 'name'
+      },
+      {
         title: '完成率',
         dataIndex: 'finishing_rate'
       },

@@ -48,10 +48,10 @@ class interfaceColController extends baseController {
       if (res) {
         _.map(res, (val, index) => {
           _.map(val.details, item => {
+            if (val.project.length > 0) {
+              _.set(val, 'name', val.project[0].name);
+            }
             if (val.daily == item.daily) {
-              console.log('====================================');
-              console.log(val.daily);
-              console.log('====================================');
               _.set(res, index, {
                 ...val,
                 ...item

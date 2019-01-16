@@ -34,27 +34,25 @@ class dailyBuildStatistics extends baseModel {
     return this.model.find({}).exec(); //显示id name email role
   }
   findAll() {
-    return (
-      this.model
-        .aggregate()
-        .group({
-          _id: '$project_id',
-          daily: { $max: '$daily' }
-        })
-        // .lookup({
-        //   from: 'daily_build_statistics',
-        //   localField: '_id',
-        //   foreignField: 'project_id',
-        //   as: 'details'
-        // })
-        .lookup({
-          from: 'project',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'name'
-        })
-        .match({ details: { $ne: [] } })
-    );
+    return this.model
+      .aggregate()
+      .group({
+        _id: '$project_id',
+        daily: { $max: '$daily' }
+      })
+      .lookup({
+        from: 'daily_build_statistics',
+        localField: '_id',
+        foreignField: 'project_id',
+        as: 'details'
+      })
+      .lookup({
+        from: 'project',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'project'
+      })
+      .match({ details: { $ne: [] } });
   }
   findOne(params) {
     return this.model.findOne({
