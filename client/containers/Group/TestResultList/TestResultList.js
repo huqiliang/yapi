@@ -7,7 +7,11 @@ export default class TestResultList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: []
+      data: [],
+      sortInfo: {
+        order: 'descend',
+        columnKey: 'finishing_rate'
+      }
     };
   }
   async componentDidMount() {
@@ -18,7 +22,15 @@ export default class TestResultList extends Component {
       });
     }
   }
+  handleChange = (pagination, filters, sorter) => {
+    this.setState({
+      filteredInfo: filters,
+      sortInfo: sorter
+    });
+  };
   render() {
+    const { data, sortInfo } = this.state;
+
     const columns = [
       {
         title: '项目id',
@@ -30,15 +42,21 @@ export default class TestResultList extends Component {
       },
       {
         title: '完成率',
-        dataIndex: 'finishing_rate'
+        dataIndex: 'finishing_rate',
+        sorter: (a, b) => a.finishing_rate - b.finishing_rate,
+        sortOrder: sortInfo.columnKey === 'finishing_rate' && sortInfo.order
       },
       {
         title: '通过率',
-        dataIndex: 'passing_rate'
+        dataIndex: 'passing_rate',
+        sorter: (a, b) => a.passing_rate - b.passing_rate,
+        sortOrder: sortInfo.columnKey === 'passing_rate' && sortInfo.order
       },
       {
         title: '时间',
-        dataIndex: 'daily'
+        dataIndex: 'daily',
+        sorter: (a, b) => a.daily - b.daily,
+        sortOrder: sortInfo.columnKey === 'daily' && sortInfo.order
       },
       {
         title: '备注',
@@ -46,7 +64,6 @@ export default class TestResultList extends Component {
       }
     ];
 
-    const { data } = this.state;
     return (
       <div
         style={{
@@ -60,6 +77,7 @@ export default class TestResultList extends Component {
           rowKey="project_id"
           columns={columns}
           dataSource={data}
+          onChange={this.handleChange}
           bordered
         />
       </div>
