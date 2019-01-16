@@ -1222,7 +1222,9 @@ class projectController extends baseController {
           let errList = [];
           if (
             _.indexOf(_.map(project.members, 'username'), name) > -1 ||
-            result.username == '胡奇良'
+            result.username == '胡奇良' ||
+            result.username == '张普君' ||
+            result.username == 'admin'
           ) {
             await Promise.map(projectData.moduleList, moduleOption => {
               let moduleName = moduleOption.name;
