@@ -67,20 +67,22 @@ class interfaceColController extends baseController {
   async getAllResult(ctx) {
     try {
       let res = await this.dailyBuildStatistics.findAll();
+
       if (res) {
         _.map(res, (val, index) => {
-          _.map(val.details, item => {
-            if (val.project.length > 0) {
+          if (val.project.length > 0) {
+            _.map(val.details, item => {
               _.set(val, 'name', val.project[0].name);
-            }
-            if (val.daily == item.daily) {
-              _.set(res, index, {
-                ...val,
-                ...item
-              });
-              return;
-            }
-          });
+              if (val.daily == item.daily) {
+                _.set(res, index, {
+                  ...val,
+                  ...item
+                });
+              }
+            });
+          } else {
+            res.splice(index, 1);
+          }
         });
         ctx.body = yapi.commons.resReturn(res);
       } else {

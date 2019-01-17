@@ -71,7 +71,9 @@ class ProjectTest extends Component {
               <p>测试结果: {nearly[0].remark}</p>
             </div>
           </div>
-        ) : null}
+        ) : (
+          '无最新测试结果'
+        )}
         <h2 className="token-title" style={{ marginTop: '20px' }}>
           详细信息
         </h2>
@@ -108,7 +110,7 @@ class ProjectTest extends Component {
           className="token"
           style={{ width: '1300px', marginLeft: 'auto', marginRight: 'auto' }}
         >
-          {data ? (
+          {data && data.length > 0 ? (
             <LineChart
               width={1200}
               height={500}
@@ -134,7 +136,9 @@ class ProjectTest extends Component {
                 stroke="#82ca9d"
               />
             </LineChart>
-          ) : null}
+          ) : (
+            <span>无测试结果</span>
+          )}
         </div>
       </div>
     );
