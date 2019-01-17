@@ -1,10 +1,25 @@
 import React, { Component } from 'react';
-// import { PieChart, Pie, Sector, Cell } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { DatePicker, Button } from 'antd';
+import moment from 'moment';
 import { connect } from 'react-redux';
 // import _ from 'lodash';
-// const COLORS = ['#00C49F', '#FF8042'];
+const { RangePicker } = DatePicker;
+const dateFormat = 'YYYY-MM-DD';
+const today = moment().format(dateFormat);
+const tomorrow = moment()
+  .add(1, 'd')
+  .format(dateFormat);
 @connect(state => {
   return {
     project: state.project.currProject
@@ -14,53 +29,113 @@ class ProjectTest extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: {},
-      activeIndex: 0,
-      activeIndex2: 0
+      nearly: {},
+      data: [],
+      selectDate: [today, tomorrow]
     };
   }
   static propTypes = {
     project: PropTypes.object
   };
-  async componentWillMount() {
+  componentWillMount() {
+    this.search();
+  }
+  async search(params) {
     let res = await axios.get('/api/testResult/findProjectTestResult', {
       params: {
-        project_id: this.props.project._id
+        project_id: this.props.project._id,
+        ...params
       }
     });
     if (res && res.data && res.data.errcode == 0) {
-      let data = res.data.data;
+      let data = res.data.data.data;
+      let nearly = res.data.data.nearly;
+
       this.setState({
+        nearly,
         data
       });
     }
   }
-
-  onPieEnter(data, index) {
-    this.setState({
-      activeIndex: index
-    });
-  }
-
-  onPieEnter2(data, index) {
-    this.setState({
-      activeIndex2: index
-    });
-  }
   render() {
-    const { data } = this.state;
-
+    const { data, nearly } = this.state;
     return (
       <div className="project-token">
         <h2 className="token-title">最近测试结果</h2>
-        <div className="message">
-          <p>测试时间: {data.daily}</p>
+        {nearly && nearly.length > 0 ? (
+          <div>
+            <div className="message">
+              <p>测试时间: {nearly[0].daily}</p>
+            </div>
+            <div className="message">
+              <p>测试结果: {nearly[0].remark}</p>
+            </div>
+          </div>
+        ) : null}
+        <h2 className="token-title" style={{ marginTop: '20px' }}>
+          详细信息
+        </h2>
+        <div
+          style={{ width: '400px', marginLeft: 'auto', marginRight: 'auto' }}
+        >
+          <RangePicker
+            onChange={(momentDate, selectDate) => {
+              this.setState({
+                selectDate
+              });
+            }}
+            style={{
+              marginRight: '10px',
+              verticalAlign: 'middle'
+            }}
+            defaultValue={[
+              moment(today, dateFormat),
+              moment(tomorrow, dateFormat)
+            ]}
+            format={dateFormat}
+          />
+          <Button
+            type="primary"
+            onClick={() => {
+              let [start, end] = this.state.selectDate;
+              this.search({ start, end });
+            }}
+          >
+            查询
+          </Button>
         </div>
-        <div className="message">
-          <p>测试结果: {data.remark}</p>
+        <div
+          className="token"
+          style={{ width: '1300px', marginLeft: 'auto', marginRight: 'auto' }}
+        >
+          {data ? (
+            <LineChart
+              width={1200}
+              height={500}
+              data={data}
+              margin={{ top: 5, right: 50, left: 50, bottom: 5 }}
+            >
+              <XAxis dataKey="daily" />
+              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                name="完成率"
+                dataKey="finishing_rate"
+                stroke="#8884d8"
+                activeDot={{ r: 8 }}
+              />
+              <Line
+                type="monotone"
+                name="通过率"
+                dataKey="passing_rate"
+                stroke="#82ca9d"
+              />
+            </LineChart>
+          ) : null}
         </div>
-        <h2 className="token-title">详细信息</h2>
-        <div className="token" />
       </div>
     );
   }

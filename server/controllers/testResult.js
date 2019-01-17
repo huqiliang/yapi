@@ -32,9 +32,31 @@ class interfaceColController extends baseController {
   async findProjectTestResult(ctx) {
     try {
       let params = ctx.request.query;
-      let res = await this.dailyBuildStatistics.findOne(params);
+      let res = await this.dailyBuildStatistics.findOneAll(params);
+      let nearly = await this.dailyBuildStatistics.findOneNearly(params);
+      const start = params.start
+        ? parseInt(params.start.replace(/-/g, ''))
+        : null;
+      const end = params.end ? parseInt(params.end.replace(/-/g, '')) : null;
       if (res) {
-        ctx.body = yapi.commons.resReturn(res);
+        let obj = {
+          nearly,
+          data: []
+        };
+        if (start) {
+          _.map(res, val => {
+            if (val.daily) {
+              let num = parseInt(val.daily);
+              if (num >= start && num <= end) {
+                obj.data.push(val);
+              }
+            }
+          });
+        } else {
+          obj.data = res;
+        }
+
+        ctx.body = yapi.commons.resReturn(obj);
       } else {
         ctx.body = yapi.commons.resReturn(null, 402, '错误');
       }

@@ -40,6 +40,7 @@ class dailyBuildStatistics extends baseModel {
         _id: '$project_id',
         daily: { $max: '$daily' }
       })
+      .sort('daily')
       .lookup({
         from: 'daily_build_statistics',
         localField: '_id',
@@ -54,10 +55,20 @@ class dailyBuildStatistics extends baseModel {
       })
       .match({ details: { $ne: [] } });
   }
-  findOne(params) {
-    return this.model.findOne({
-      project_id: params.project_id
-    });
+  findOneNearly(params) {
+    return this.model
+      .find({
+        project_id: params.project_id
+      })
+      .sort({ daily: -1 })
+      .limit(1);
+  }
+  findOneAll(params) {
+    return this.model
+      .find({
+        project_id: params.project_id
+      })
+      .sort('daily');
   }
 }
 
