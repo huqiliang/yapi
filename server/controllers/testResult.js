@@ -67,10 +67,12 @@ class interfaceColController extends baseController {
   async getAllResult(ctx) {
     try {
       let res = await this.dailyBuildStatistics.findAll();
-
-      if (res) {
+      console.log('====================================');
+      console.log(res);
+      console.log('====================================');
+      if (res && res.length > 0) {
         _.map(res, (val, index) => {
-          if (val.project.length > 0) {
+          if (_.has(val, 'project') && val.project.length > 0) {
             _.map(val.details, item => {
               _.set(val, 'name', val.project[0].name);
               if (val.daily == item.daily) {
