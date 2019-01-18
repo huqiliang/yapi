@@ -83,7 +83,7 @@ class interfaceColController extends baseController {
               }
             });
           } else {
-            res.splice(index, 1);
+            res = res.splice(index, 1);
           }
         });
         ctx.body = yapi.commons.resReturn(res);
