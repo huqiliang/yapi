@@ -68,7 +68,7 @@ class interfaceColController extends baseController {
     try {
       let res = await this.dailyBuildStatistics.findAll();
       console.log('====================================');
-      console.log(res);
+      console.log(JSON.stringify(res));
       console.log('====================================');
       if (res && res.length > 0) {
         _.map(res, (val, index) => {
