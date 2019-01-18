@@ -38,7 +38,7 @@ export default class TestResultList extends Component {
       },
       {
         title: '项目名称',
-        dataIndex: 'name'
+        dataIndex: 'project[0].name'
       },
       {
         title: '完成率',

@@ -67,26 +67,27 @@ class interfaceColController extends baseController {
   async getAllResult(ctx) {
     try {
       let res = await this.dailyBuildStatistics.findAll();
-      console.log('====================================');
-      console.log(JSON.stringify(res));
-      console.log('====================================');
+      let data = [];
       if (res && res.length > 0) {
-        _.map(res, (val, index) => {
+        _.map(res, val => {
           if (_.has(val, 'project') && val.project.length > 0) {
+            let obj;
             _.map(val.details, item => {
-              _.set(val, 'name', val.project[0].name);
               if (val.daily == item.daily) {
-                _.set(res, index, {
+                let { finishing_rate, passing_rate, remark, project_id } = item;
+                obj = {
                   ...val,
-                  ...item
-                });
+                  project_id,
+                  finishing_rate,
+                  passing_rate,
+                  remark
+                };
               }
             });
-          } else {
-            res = res.splice(index, 1);
+            data.push(obj);
           }
         });
-        ctx.body = yapi.commons.resReturn(res);
+        ctx.body = yapi.commons.resReturn(data);
       } else {
         ctx.body = yapi.commons.resReturn(null, 402, '错误');
       }
