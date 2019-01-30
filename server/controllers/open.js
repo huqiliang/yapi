@@ -1,26 +1,26 @@
-const projectModel = require('../models/project.js');
-const interfaceColModel = require('../models/interfaceCol.js');
-const interfaceCaseModel = require('../models/interfaceCase.js');
-const interfaceModel = require('../models/interface.js');
-const interfaceCatModel = require('../models/interfaceCat.js');
-const followModel = require('../models/follow.js');
-const testResult = require('../models/testResult.js');
-const userModel = require('../models/user.js');
-const yapi = require('../yapi.js');
-const baseController = require('./base.js');
-const shell = require('shelljs');
-const path = require('path');
+const projectModel = require("../models/project.js");
+const interfaceColModel = require("../models/interfaceCol.js");
+const interfaceCaseModel = require("../models/interfaceCase.js");
+const interfaceModel = require("../models/interface.js");
+const interfaceCatModel = require("../models/interfaceCat.js");
+const followModel = require("../models/follow.js");
+const testResult = require("../models/testResult.js");
+const userModel = require("../models/user.js");
+const yapi = require("../yapi.js");
+const baseController = require("./base.js");
+const shell = require("shelljs");
+const path = require("path");
 const {
   handleParams,
   crossRequest,
   handleCurrDomain,
   checkNameIsExistInArray
-} = require('../../common/postmanLib');
-const { handleParamsValue, ArrayToObject } = require('../../common/utils.js');
-const renderToHtml = require('../utils/reportHtml');
+} = require("../../common/postmanLib");
+const { handleParamsValue, ArrayToObject } = require("../../common/utils.js");
+const renderToHtml = require("../utils/reportHtml");
 // const axios = require('axios');
-const HanldeImportData = require('../../common/HandleImportData');
-const _ = require('underscore');
+const HanldeImportData = require("../../common/HandleImportData");
+const _ = require("underscore");
 
 /**
  * {
@@ -28,7 +28,7 @@ const _ = require('underscore');
  * }
  */
 const importDataModule = {};
-yapi.emitHook('import_data', importDataModule);
+yapi.emitHook("import_data", importDataModule);
 
 class openController extends baseController {
   constructor(ctx) {
@@ -44,50 +44,50 @@ class openController extends baseController {
     this.handleValue = this.handleValue.bind(this);
     this.schemaMap = {
       runAutoTest: {
-        '*id': 'number',
-        project_id: 'string',
-        token: 'string',
+        "*id": "number",
+        project_id: "string",
+        token: "string",
         mode: {
-          type: 'string',
-          default: 'html'
+          type: "string",
+          default: "html"
         },
         email: {
-          type: 'boolean',
+          type: "boolean",
           default: false
         },
         download: {
-          type: 'boolean',
+          type: "boolean",
           default: false
         },
         closeRemoveAdditional: true
       },
       runLvYunTest: {
-        '*id': 'number',
-        project_id: 'string',
-        token: 'string',
+        "*id": "number",
+        project_id: "string",
+        token: "string",
         mode: {
-          type: 'string',
-          default: 'html'
+          type: "string",
+          default: "html"
         },
         email: {
-          type: 'boolean',
+          type: "boolean",
           default: false
         },
         download: {
-          type: 'boolean',
+          type: "boolean",
           default: false
         },
         closeRemoveAdditional: true
       },
       importData: {
-        '*type': 'string',
-        url: 'string',
-        '*token': 'string',
-        json: 'string',
-        project_id: 'string',
+        "*type": "string",
+        url: "string",
+        "*token": "string",
+        json: "string",
+        project_id: "string",
         merge: {
-          type: 'string',
-          default: 'normal'
+          type: "string",
+          default: "normal"
         }
       }
     };
@@ -103,17 +103,17 @@ class openController extends baseController {
       return (ctx.body = yapi.commons.resReturn(
         null,
         40022,
-        '不存在的导入方式'
+        "不存在的导入方式"
       ));
     }
 
     if (!content) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'json 不能为空'));
+      return (ctx.body = yapi.commons.resReturn(null, 40022, "json 不能为空"));
     }
     try {
       content = JSON.parse(content);
     } catch (e) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'json 格式有误'));
+      return (ctx.body = yapi.commons.resReturn(null, 40022, "json 格式有误"));
     }
 
     let menuList = await this.interfaceCatModel.list(project_id);
@@ -145,14 +145,14 @@ class openController extends baseController {
       return (ctx.body = yapi.commons.resReturn(
         null,
         404,
-        errorMessage.join('\n')
+        errorMessage.join("\n")
       ));
     }
     ctx.body = yapi.commons.resReturn(null, 0, successMessage);
   }
 
   async projectInterfaceData(ctx) {
-    ctx.body = 'projectInterfaceData';
+    ctx.body = "projectInterfaceData";
   }
 
   handleValue(val, global) {
@@ -166,7 +166,7 @@ class openController extends baseController {
     Object.keys(params).map(item => {
       if (/env_/gi.test(item)) {
         let curEnv = yapi.commons.trim(params[item]);
-        let value = { curEnv, project_id: item.split('_')[1] };
+        let value = { curEnv, project_id: item.split("_")[1] };
         result.push(value);
       }
     });
@@ -174,7 +174,7 @@ class openController extends baseController {
   }
   async runAutoTest(ctx) {
     if (!this.$tokenAuth) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
+      return (ctx.body = yapi.commons.resReturn(null, 40022, "token 验证失败"));
     }
     const token = ctx.query.token;
 
@@ -188,7 +188,7 @@ class openController extends baseController {
 
     let colData = await this.interfaceColModel.get(id);
     if (!colData) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'id值不存在'));
+      return (ctx.body = yapi.commons.resReturn(null, 40022, "id值不存在"));
     }
 
     let projectData = await this.projectModel.get(projectId);
@@ -238,7 +238,7 @@ class openController extends baseController {
       let successNum = 0,
         failedNum = 0,
         len = 0,
-        msg = '';
+        msg = "";
       testList.forEach(item => {
         len++;
         if (item.code === 0) {
@@ -261,7 +261,7 @@ class openController extends baseController {
 
     let reportsResult = {
       message: getMessage(testList),
-      runTime: executionTime + 's',
+      runTime: executionTime + "s",
       numbs: testList.length,
       list: testList
     };
@@ -288,11 +288,11 @@ class openController extends baseController {
         </html>`
       });
     }
-    let mode = ctx.params.mode || 'html';
+    let mode = ctx.params.mode || "html";
     if (ctx.params.download === true) {
-      ctx.set('Content-Disposition', `attachment; filename=test.${mode}`);
+      ctx.set("Content-Disposition", `attachment; filename=test.${mode}`);
     }
-    if (ctx.params.mode === 'json') {
+    if (ctx.params.mode === "json") {
       return (ctx.body = reportsResult);
     } else {
       return (ctx.body = renderToHtml(reportsResult));
@@ -328,7 +328,7 @@ class openController extends baseController {
               { _id: resTestResult._id },
               {
                 project_id: item.project_id,
-                env: item.env.name,
+                env: item.env ? item.env.name : "jmeter_default",
                 interface_id: item.interface_id,
                 add_time: yapi.commons.time(),
                 ...result
@@ -338,7 +338,7 @@ class openController extends baseController {
             await this.testResult.save({
               uid: this.getUid(),
               project_id: item.project_id,
-              env: item.env.name,
+              env: item.env ? item.env.name : "jmeter_default",
               interface_id: item.interface_id,
               add_time: yapi.commons.time(),
               ...result
@@ -356,27 +356,28 @@ class openController extends baseController {
     let res = await that.interfaceModel.get(item.interface_id);
     let project = await that.projectModel.get(item.project_id);
     if (res && project) {
-      const pyPath = path.join(__dirname, '../../static/jmeter/jmeter.py');
+      const pyPath = path.join(__dirname, "../../static/jmeter/jmeter.py");
       return new Promise(resolve => {
-        let shellpy = `python3 ${pyPath} -u ${item.env.domain} -g ${
+        let envDomain = item.env ? item.env.domain : "default";
+        let shellpy = `python3 ${pyPath} -u ${envDomain} -g ${
           item.projectTestPath
         } -p ${project.basepath}${item.path}.jmx -o ${item.project_id}/${
           item.id
         }`;
 
-        console.log('====================================');
-        console.log('执行命令:' + shellpy);
-        console.log('====================================');
+        console.log("====================================");
+        console.log("执行命令:" + shellpy);
+        console.log("====================================");
         shell.exec(shellpy, async function(code, stdout) {
           try {
             if (!_.isEmpty(stdout)) {
               let result = JSON.parse(yapi.commons.trim(stdout));
               if (!_.isEmpty(result)) {
-                if (result.status == 'success') {
+                if (result.status == "success") {
                   //修改状态
-                  obj = Object.assign(res, { status: 'testPass' });
+                  obj = Object.assign(res, { status: "testPass" });
                 } else {
-                  obj = Object.assign(res, { status: 'testRefuse' });
+                  obj = Object.assign(res, { status: "testRefuse" });
                 }
                 await that.interfaceModel.save(obj);
                 resolve(result);
@@ -396,7 +397,7 @@ class openController extends baseController {
   }
   async runLvYunTest(ctx) {
     if (!this.$tokenAuth) {
-      return (ctx.body = yapi.commons.resReturn(null, 40022, 'token 验证失败'));
+      return (ctx.body = yapi.commons.resReturn(null, 40022, "token 验证失败"));
     }
     let id = ctx.params.id;
     let caseList = await yapi.commons.getCaseList(id);
@@ -416,9 +417,9 @@ class openController extends baseController {
         return val.name == curEnvItem.curEnv;
       });
       item.id = item._id;
-      console.log('====================================');
+      console.log("====================================");
       console.log(item);
-      console.log('====================================');
+      console.log("====================================");
       let result = await this.useSell(this, item);
       if (result.errorCode != 0) {
         let allResult = Object.assign(result, item);
@@ -429,11 +430,11 @@ class openController extends baseController {
     const executionTime = (endTime - startTime) / 1000;
     let succenNum = 0;
     _.map(testList, o => {
-      if (o.status == 'success') {
+      if (o.status == "success") {
         succenNum += 1;
       }
     });
-    await ctx.render('report', { testList, executionTime, succenNum });
+    await ctx.render("report", { testList, executionTime, succenNum });
   }
   async handleTest(interfaceData) {
     let requestParams = {};
@@ -464,7 +465,7 @@ class openController extends baseController {
         res_header: res.header,
         res_body: res.body
       });
-      if (options.data && typeof options.data === 'object') {
+      if (options.data && typeof options.data === "object") {
         requestParams = Object.assign(requestParams, options.data);
       }
 
@@ -489,7 +490,7 @@ class openController extends baseController {
       result.params = requestParams;
       if (validRes.length === 0) {
         result.code = 0;
-        result.validRes = [{ message: '验证通过' }];
+        result.validRes = [{ message: "验证通过" }];
       } else if (validRes.length > 0) {
         result.code = 1;
         result.validRes = validRes;
@@ -527,7 +528,7 @@ class openController extends baseController {
       }
     } catch (err) {
       validRes.push({
-        message: 'Error: ' + err.message
+        message: "Error: " + err.message
       });
     }
   }
@@ -543,7 +544,7 @@ class openController extends baseController {
       }
     });
     req_header = req_header.filter(item => {
-      return item && typeof item === 'object';
+      return item && typeof item === "object";
     });
     return req_header;
   }

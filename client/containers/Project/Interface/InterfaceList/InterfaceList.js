@@ -1,19 +1,21 @@
-import React, { PureComponent as Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
-import axios from 'axios';
-import { Table, Button, Modal, message, Tooltip, Select, Icon } from 'antd';
-import AddInterfaceForm from './AddInterfaceForm';
+import React, { PureComponent as Component } from "react";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import axios from "axios";
+import _ from "lodash";
+import { Table, Button, Modal, message, Tooltip, Select, Icon } from "antd";
+import AddInterfaceForm from "./AddInterfaceForm";
 import {
   fetchInterfaceListMenu,
   fetchInterfaceList,
   fetchInterfaceCatList
-} from '../../../../reducer/modules/interface.js';
-import { getProject } from '../../../../reducer/modules/project.js';
-import { Link } from 'react-router-dom';
-import variable from '../../../../constants/variable';
-import './Edit.scss';
-import Label from '../../../../components/Label/Label.js';
+} from "../../../../reducer/modules/interface.js";
+import { getProject } from "../../../../reducer/modules/project.js";
+import { Link } from "react-router-dom";
+import variable from "../../../../constants/variable";
+import "./Edit.scss";
+import Label from "../../../../components/Label/Label.js";
+import TestButton from "./TestButton/TestButton";
 
 const Option = Select.Option;
 const limit = 20;
@@ -45,7 +47,8 @@ class InterfaceList extends Component {
       data: [],
       catid: null,
       total: null,
-      current: 1
+      current: 1,
+      testModal: false
     };
   }
 
@@ -90,7 +93,56 @@ class InterfaceList extends Component {
       await this.props.fetchInterfaceCatList(option);
     }
   };
+  sendTest(data) {
+    if (_.isEmpty(data.testPath)) {
+      message.error("请配置全局测试地址");
+    } else {
+      if (!/^ssh:\/\/.*$/.test(data.testPath)) {
+        message.error("全局测试地址必须是ssh的");
+      } else {
+        this.setState({
+          testModal: true
+        });
+        let domain =
+          location.hostname + (location.port !== "" ? ":" + location.port : "");
+        //因后端 node 仅支持 ws， 暂不支持 wss
+        let wsProtocol = location.protocol === "https:" ? "wss" : "ws";
+        // let options = handleParams(this.state, this.handleValue);
+        const { _id: id, case_env } = this.state;
+        const projectId = data.project_id;
+        const ws = new WebSocket(
+          wsProtocol +
+            "://" +
+            domain +
+            "/api/open/run_lvyun_single_test?projectId=" +
+            projectId +
+            "&interFasceId=" +
+            id +
+            "&env=" +
+            case_env
+        );
+        ws.onopen = () => {
+          this.setState({
+            webSocketOpen: true
+          });
+          ws.send("beginTest");
+        };
 
+        ws.onmessage = e => {
+          this.setState({
+            testData: JSON.parse(e.data),
+            webSocketOpen: false
+          });
+        };
+        ws.onclose = () => {
+          console.log("websocket close");
+          this.setState({
+            webSocketOpen: false
+          });
+        };
+      }
+    }
+  }
   // 更新分类简介
   handleChangeInterfaceCat = (desc, name) => {
     let params = {
@@ -99,14 +151,14 @@ class InterfaceList extends Component {
       desc: desc
     };
 
-    axios.post('/api/interface/up_cat', params).then(async res => {
+    axios.post("/api/interface/up_cat", params).then(async res => {
       if (res.data.errcode !== 0) {
         return message.error(res.data.errmsg);
       }
       let project_id = this.props.match.params.id;
       await this.props.getProject(project_id);
       await this.props.fetchInterfaceListMenu(project_id);
-      message.success('接口集合简介更新成功');
+      message.success("接口集合简介更新成功");
     });
   };
   handleChange = (pagination, filters, sorter) => {
@@ -136,13 +188,17 @@ class InterfaceList extends Component {
 
   handleAddInterface = data => {
     data.project_id = this.props.curProject._id;
-    axios.post('/api/interface/add', data).then(res => {
+    axios.post("/api/interface/add", data).then(res => {
       if (res.data.errcode !== 0) {
-        return message.error(`${res.data.errmsg}, 你可以在左侧的接口列表中对接口进行删改`);
+        return message.error(
+          `${res.data.errmsg}, 你可以在左侧的接口列表中对接口进行删改`
+        );
       }
-      message.success('接口添加成功');
+      message.success("接口添加成功");
       let interfaceId = res.data.data._id;
-      this.props.history.push('/project/' + data.project_id + '/interface/api/' + interfaceId);
+      this.props.history.push(
+        "/project/" + data.project_id + "/interface/api/" + interfaceId
+      );
       this.props.fetchInterfaceListMenu(data.project_id);
     });
   };
@@ -152,9 +208,9 @@ class InterfaceList extends Component {
       id: id,
       catid
     };
-    let result = await axios.post('/api/interface/up', params);
+    let result = await axios.post("/api/interface/up", params);
     if (result.data.errcode === 0) {
-      message.success('修改成功');
+      message.success("修改成功");
       this.handleRequest(this.props);
       this.props.fetchInterfaceListMenu(this.props.curProject._id);
     } else {
@@ -164,12 +220,12 @@ class InterfaceList extends Component {
 
   changeInterfaceStatus = async value => {
     const params = {
-      id: value.split('-')[0],
-      status: value.split('-')[1]
+      id: value.split("-")[0],
+      status: value.split("-")[1]
     };
-    let result = await axios.post('/api/interface/up', params);
+    let result = await axios.post("/api/interface/up", params);
     if (result.data.errcode === 0) {
-      message.success('修改成功');
+      message.success("修改成功");
       this.handleRequest(this.props);
     } else {
       message.error(result.data.errmsg);
@@ -193,40 +249,54 @@ class InterfaceList extends Component {
 
     const columns = [
       {
-        title: '接口名称',
-        dataIndex: 'title',
-        key: 'title',
+        title: "接口名称",
+        dataIndex: "title",
+        key: "title",
         width: 30,
         render: (text, item) => {
           return (
-            <Link to={'/project/' + item.project_id + '/interface/api/' + item._id}>
+            <Link
+              to={"/project/" + item.project_id + "/interface/api/" + item._id}
+            >
               <span className="path">{text}</span>
             </Link>
           );
         }
       },
       {
-        title: '接口路径',
-        dataIndex: 'path',
-        key: 'path',
+        title: "接口路径",
+        dataIndex: "path",
+        key: "path",
         width: 50,
         render: (item, record) => {
           const path = this.props.curProject.basepath + item;
           let methodColor =
-            variable.METHOD_COLOR[record.method ? record.method.toLowerCase() : 'get'] ||
-            variable.METHOD_COLOR['get'];
+            variable.METHOD_COLOR[
+              record.method ? record.method.toLowerCase() : "get"
+            ] || variable.METHOD_COLOR["get"];
           return (
             <div>
               <span
-                style={{ color: methodColor.color, backgroundColor: methodColor.bac }}
+                style={{
+                  color: methodColor.color,
+                  backgroundColor: methodColor.bac
+                }}
                 className="colValue"
               >
                 {record.method}
               </span>
               <Tooltip title="开放接口" placement="topLeft">
-                <span>{record.api_opened && <Icon className="opened" type="eye-o" />}</span>
+                <span>
+                  {record.api_opened && (
+                    <Icon className="opened" type="eye-o" />
+                  )}
+                </span>
               </Tooltip>
-              <Tooltip title={path} placement="topLeft" overlayClassName="toolTip">
+              <Tooltip
+                title={path}
+                placement="topLeft"
+                overlayClassName="toolTip"
+              >
                 <span className="path">{path}</span>
               </Tooltip>
             </div>
@@ -234,20 +304,20 @@ class InterfaceList extends Component {
         }
       },
       {
-        title: '接口分类',
-        dataIndex: 'catid',
-        key: 'catid',
+        title: "接口分类",
+        dataIndex: "catid",
+        key: "catid",
         width: 28,
         render: (item, record) => {
           return (
             <Select
-              value={item + ''}
+              value={item + ""}
               className="select path"
               onChange={catid => this.changeInterfaceCat(record._id, catid)}
             >
               {this.props.catList.map(cat => {
                 return (
-                  <Option key={cat.id + ''} value={cat._id + ''}>
+                  <Option key={cat.id + ""} value={cat._id + ""}>
                     <span>{cat.name}</span>
                   </Option>
                 );
@@ -257,46 +327,78 @@ class InterfaceList extends Component {
         }
       },
       {
-        title: '状态',
-        dataIndex: 'status',
-        key: 'status',
+        title: "状态",
+        dataIndex: "status",
+        key: "status",
         width: 24,
         render: (text, record) => {
           const key = record.key;
           return (
             <Select
-              value={key + '-' + text}
+              value={key + "-" + text}
               className="select"
               onChange={this.changeInterfaceStatus}
             >
-              <Option value={key + '-done'}>
+              <Option value={key + "-done"}>
                 <span className="tag-status done">已完成</span>
               </Option>
-              <Option value={key + '-undone'}>
+              <Option value={key + "-undone"}>
                 <span className="tag-status undone">未完成</span>
+              </Option>
+              <Option value={key + "-testPass"}>
+                <span className="tag-status testPass">测试通过</span>
+              </Option>
+              <Option value={key + "-testRefuse"}>
+                <span className="tag-status testRefuse">测试未通过</span>
               </Option>
             </Select>
           );
         },
         filters: [
           {
-            text: '已完成',
-            value: 'done'
+            text: "已完成",
+            value: "done"
           },
           {
-            text: '未完成',
-            value: 'undone'
+            text: "未完成",
+            value: "undone"
+          },
+          {
+            text: "测试通过",
+            value: "testPass"
+          },
+          {
+            text: "测试未通过",
+            value: "testRefuse"
           }
         ],
         onFilter: (value, record) => record.status.indexOf(value) === 0
       },
       {
-        title: 'tag',
-        dataIndex: 'tag',
-        key: 'tag',
+        title: "测试",
+        dataIndex: "status2",
+        key: "status2",
+        width: 24,
+        render: (text, record) => {
+          console.log("====================================");
+          console.log(record);
+          console.log("====================================");
+          return (
+            <TestButton
+              type="inter"
+              currentProject={this.props.curProject}
+              currentInterface={record}
+            />
+          );
+        }
+      },
+      {
+        title: "tag",
+        dataIndex: "tag",
+        key: "tag",
         width: 14,
         render: text => {
-          let textMsg = text.length > 0 ? text.join('\n') : '未设置';
+          let textMsg = text.length > 0 ? text.join("\n") : "未设置";
           return <div className="table-desc">{textMsg}</div>;
         },
         filters: filter,
@@ -305,8 +407,8 @@ class InterfaceList extends Component {
         }
       }
     ];
-    let intername = '',
-      desc = '';
+    let intername = "",
+      desc = "";
     let cat = this.props.curProject ? this.props.curProject.cat : [];
 
     if (cat) {
@@ -350,21 +452,27 @@ class InterfaceList extends Component {
     // console.log(this.props.curProject.tag)
 
     return (
-      <div style={{ padding: '24px' }}>
-        <h2 className="interface-title" style={{ display: 'inline-block', margin: 0 }}>
-          {intername ? intername : '全部接口'}共 ({total}) 个
+      <div style={{ padding: "24px" }}>
+        <h2
+          className="interface-title"
+          style={{ display: "inline-block", margin: 0 }}
+        >
+          {intername ? intername : "全部接口"}共 ({total}) 个
         </h2>
 
         <Button
-          style={{ float: 'right' }}
+          style={{ float: "right" }}
           disabled={isDisabled}
           type="primary"
           onClick={() => this.setState({ visible: true })}
         >
           添加接口
         </Button>
-        <div style={{ marginTop: '10px' }}>
-          <Label onChange={value => this.handleChangeInterfaceCat(value, intername)} desc={desc} />
+        <div style={{ marginTop: "10px" }}>
+          <Label
+            onChange={value => this.handleChangeInterfaceCat(value, intername)}
+            desc={desc}
+          />
         </div>
         <Table
           className="table-interfacelist"
