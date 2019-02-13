@@ -1,5 +1,32 @@
-### v1.4.1
+### v1.5.1
 
+* 优化 restful api 动态路由权重匹配算法，匹配更加精确
+* openapi 新增 `/api/interface/list_cat`，获取某个分类下所有接口
+* 新增了 rap数据导入到 yapi 插件 [rap2yapi](https://github.com/wxxcarl/yapi-plugin-import-rap)
+
+### v1.5.0
+
+* 优化开放 api功能，现在 token 带有用户信息了
+* 修复无法获取请求302 跳转前的 headers
+
+### v1.4.4
+* 优化了 json-schema 编辑器交互，修复了参数名写到一半提示重复的问题
+* 优化了首页体验，提升页面打开速度
+* 新增自动化测试通用规则配置功能
+
+### v1.4.3
+* 修复了可视化安装，mongodb 报错的问题
+* 支持了 swagger 导出功能
+* 支持了克隆测试用例
+
+### v1.4.2
+* 优化数据导入对 headers 处理，如果 requestType 是 json，自动增加header "content-type/json"
+* fix: 修改了测试集合有多个项目接口时，切换执行环境相互覆盖不生效的问题 #692
+* fix: mongoose warning 'Error: (node:3819) DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead'
+* opti: 去掉没必要的redux-thunk
+* 接口更新没有变化时，不记录日志，避免cron多次导入swagger的接口时，导致动态里展示一大堆的无意义日志
+
+### v1.4.1
 
 * 支持任何人都可以添加分组，只有管理员才能修改项目是否公开
 * 支持 mongodb 集群
@@ -488,3 +515,7 @@
 
 * 接口备注集成了富文本编辑
 * 支持 har 协议的接口数据导入
+
+
+todo:
+新增 crypto 加密函数

@@ -1,19 +1,20 @@
-const yapi = require('../yapi.js');
-const projectModel = require('../models/project.js');
-const userModel = require('../models/user.js');
-const interfaceModel = require('../models/interface.js');
-const groupModel = require('../models/group.js');
-const tokenModel = require('../models/token.js');
-const _ = require('underscore');
-const jwt = require('jsonwebtoken');
+const yapi = require("../yapi.js");
+const projectModel = require("../models/project.js");
+const userModel = require("../models/user.js");
+const interfaceModel = require("../models/interface.js");
+const groupModel = require("../models/group.js");
+const tokenModel = require("../models/token.js");
+const _ = require("underscore");
+const jwt = require("jsonwebtoken");
+const { parseToken } = require("../utils/token");
 
 class baseController {
   constructor(ctx) {
     this.ctx = ctx;
     //网站上线后，role对象key是不能修改的，value可以修改
     this.roles = {
-      admin: 'Admin',
-      member: '网站会员'
+      admin: "Admin",
+      member: "网站会员"
     };
   }
 
@@ -22,13 +23,13 @@ class baseController {
     this.tokenModel = yapi.getInst(tokenModel);
     this.projectModel = yapi.getInst(projectModel);
     let ignoreRouter = [
-      '/api/user/login_by_token',
-      '/api/user/login',
-      '/api/user/reg',
-      '/api/user/status',
-      '/api/user/logout',
-      '/api/user/avatar',
-      '/api/user/login_by_ldap'
+      "/api/user/login_by_token",
+      "/api/user/login",
+      "/api/user/reg",
+      "/api/user/status",
+      "/api/user/logout",
+      "/api/user/avatar",
+      "/api/user/login_by_ldap"
     ];
     if (ignoreRouter.indexOf(ctx.path) > -1) {
       this.$auth = true;
@@ -37,39 +38,69 @@ class baseController {
     }
 
     let openApiRouter = [
-      '/api/open/run_auto_test',
-      '/api/open/run_lvyun_test',
-      '/api/open/import_data',
-      '/api/interface/add',
-      '/api/interface/save',
-      '/api/interface/up',
-      '/api/interface/add_cat'
+      "/api/open/run_auto_test",
+      "/api/open/import_data",
+      "/api/interface/add",
+      "/api/interface/save",
+      "/api/interface/up",
+      "/api/interface/get",
+      "/api/interface/list",
+      "/api/interface/list_menu",
+      "/api/interface/add_cat",
+      "/api/interface/getCatMenu",
+      "/api/interface/list_cat",
+      "/api/open/run_lvyun_test"
     ];
 
     let params = Object.assign({}, ctx.query, ctx.request.body);
     let token = params.token;
 
     if (token && openApiRouter.indexOf(ctx.path) > -1) {
-      if (this.$auth) {
-        ctx.params.project_id = await this.getProjectIdByToken(token);
+      let tokens = parseToken(token);
 
-        if (!ctx.params.project_id) {
-          return (this.$tokenAuth = false);
-        }
-        return (this.$tokenAuth = true);
+      const oldTokenUid = "999999";
+
+      let tokenUid = oldTokenUid;
+
+      if (!tokens) {
+        let checkId = await this.getProjectIdByToken(token);
+        if (!checkId) return;
+      } else {
+        token = tokens.projectToken;
+        tokenUid = tokens.uid;
       }
 
+      // if (this.$auth) {
+      //   ctx.params.project_id = await this.getProjectIdByToken(token);
+
+      //   if (!ctx.params.project_id) {
+      //     return (this.$tokenAuth = false);
+      //   }
+      //   return (this.$tokenAuth = true);
+      // }
+
       let checkId = await this.getProjectIdByToken(token);
+      if (!checkId) {
+        ctx.body = yapi.commons.resReturn(null, 42014, "token 无效");
+      }
       let projectData = await this.projectModel.get(checkId);
       if (projectData) {
         ctx.params.project_id = checkId;
         this.$tokenAuth = true;
-        this.$uid = '999999';
-        this.$user = {
-          _id: this.$uid,
-          role: 'member',
-          username: 'system'
-        };
+        this.$uid = tokenUid;
+        let result;
+        if (tokenUid === oldTokenUid) {
+          result = {
+            _id: tokenUid,
+            role: "member",
+            username: "system"
+          };
+        } else {
+          let userInst = yapi.getInst(userModel); //创建user实体
+          result = await userInst.findById(tokenUid);
+        }
+
+        this.$user = result;
         this.$auth = true;
       }
     }
@@ -87,8 +118,8 @@ class baseController {
   }
 
   async checkLogin(ctx) {
-    let token = ctx.cookies.get('_yapi_token');
-    let uid = ctx.cookies.get('_yapi_uid');
+    let token = ctx.cookies.get("_yapi_token");
+    let uid = ctx.cookies.get("_yapi_uid");
     try {
       if (!token || !uid) {
         return false;
@@ -115,7 +146,7 @@ class baseController {
 
       return false;
     } catch (e) {
-      yapi.commons.log(e, 'error');
+      yapi.commons.log(e, "error");
       return false;
     }
   }
@@ -146,18 +177,18 @@ class baseController {
     let body;
     if ((await this.checkLogin(ctx)) === true) {
       let result = yapi.commons.fieldSelect(this.$user, [
-        '_id',
-        'username',
-        'email',
-        'up_time',
-        'add_time',
-        'role',
-        'type',
-        'study'
+        "_id",
+        "username",
+        "email",
+        "up_time",
+        "add_time",
+        "role",
+        "type",
+        "study"
       ]);
       body = yapi.commons.resReturn(result);
     } else {
-      body = yapi.commons.resReturn(null, 40011, '请登录...');
+      body = yapi.commons.resReturn(null, 40011, "请登录...");
     }
 
     body.ladp = await this.checkLDAP();
@@ -180,27 +211,27 @@ class baseController {
   async getProjectRole(id, type) {
     let result = {};
     try {
-      if (this.getRole() === 'admin') {
-        return 'admin';
+      if (this.getRole() === "admin") {
+        return "admin";
       }
-      if (type === 'interface') {
+      if (type === "interface") {
         let interfaceInst = yapi.getInst(interfaceModel);
         let interfaceData = await interfaceInst.get(id);
         result.interfaceData = interfaceData;
         // 项目创建者相当于 owner
         if (interfaceData.uid === this.getUid()) {
-          return 'owner';
+          return "owner";
         }
-        type = 'project';
+        type = "project";
         id = interfaceData.project_id;
       }
 
-      if (type === 'project') {
+      if (type === "project") {
         let projectInst = yapi.getInst(projectModel);
         let projectData = await projectInst.get(id);
         if (projectData.uid === this.getUid()) {
           // 建立项目的人
-          return 'owner';
+          return "owner";
         }
         let memberData = _.find(projectData.members, m => {
           if (m && m.uid === this.getUid()) {
@@ -209,24 +240,24 @@ class baseController {
         });
 
         if (memberData && memberData.role) {
-          if (memberData.role === 'owner') {
-            return 'owner';
-          } else if (memberData.role === 'dev') {
-            return 'dev';
+          if (memberData.role === "owner") {
+            return "owner";
+          } else if (memberData.role === "dev") {
+            return "dev";
           } else {
-            return 'guest';
+            return "guest";
           }
         }
-        type = 'group';
+        type = "group";
         id = projectData.group_id;
       }
 
-      if (type === 'group') {
+      if (type === "group") {
         let groupInst = yapi.getInst(groupModel);
         let groupData = await groupInst.get(id);
         // 建立分组的人
         if (groupData.uid === this.getUid()) {
-          return 'owner';
+          return "owner";
         }
 
         let groupMemberData = _.find(groupData.members, m => {
@@ -235,19 +266,19 @@ class baseController {
           }
         });
         if (groupMemberData && groupMemberData.role) {
-          if (groupMemberData.role === 'owner') {
-            return 'owner';
-          } else if (groupMemberData.role === 'dev') {
-            return 'dev';
+          if (groupMemberData.role === "owner") {
+            return "owner";
+          } else if (groupMemberData.role === "dev") {
+            return "dev";
           } else {
-            return 'guest';
+            return "guest";
           }
         }
       }
 
-      return 'member';
+      return "member";
     } catch (e) {
-      yapi.commons.log(e, 'error');
+      yapi.commons.log(e, "error");
       return false;
     }
   }
@@ -260,20 +291,20 @@ class baseController {
   async checkAuth(id, type, action) {
     let role = await this.getProjectRole(id, type);
 
-    if (action === 'danger') {
-      if (role === 'admin' || role === 'owner') {
+    if (action === "danger") {
+      if (role === "admin" || role === "owner") {
         return true;
       }
-    } else if (action === 'edit') {
-      if (role === 'admin' || role === 'owner' || role === 'dev') {
+    } else if (action === "edit") {
+      if (role === "admin" || role === "owner" || role === "dev") {
         return true;
       }
-    } else if (action === 'view') {
+    } else if (action === "view") {
       if (
-        role === 'admin' ||
-        role === 'owner' ||
-        role === 'dev' ||
-        role === 'guest'
+        role === "admin" ||
+        role === "owner" ||
+        role === "dev" ||
+        role === "guest"
       ) {
         return true;
       }

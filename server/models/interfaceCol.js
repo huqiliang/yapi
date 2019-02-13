@@ -15,7 +15,40 @@ class interfaceCol extends baseModel {
       add_time: Number,
       up_time: Number,
       index: { type: Number, default: 0 },
-      test_report: { type: String, default: '{}' }
+      test_report: { type: String, default: '{}' },
+      checkHttpCodeIs200: {
+        type:Boolean,
+        default: false
+      },
+      checkResponseSchema: {
+        type:Boolean,
+        default: false
+      },
+      checkResponseField: {
+        name: {
+          type: String,
+          required: true,
+          default: "code"
+        },
+        value: {
+          type: String,
+          required: true,
+          default: "0"
+        },
+        enable: {
+          type: Boolean,
+          default: false
+        }
+      },
+      checkScript: {
+        content: {
+          type: String
+        },
+        enable: {
+          type: Boolean,
+          default: false
+        }
+      }
     };
   }
 
