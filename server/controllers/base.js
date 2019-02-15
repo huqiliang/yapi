@@ -49,6 +49,7 @@ class baseController {
       "/api/interface/add_cat",
       "/api/interface/getCatMenu",
       "/api/interface/list_cat",
+      "/api/project/get",
       "/api/open/run_lvyun_test"
     ];
 
