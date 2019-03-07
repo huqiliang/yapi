@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   LineChart,
   Line,
@@ -7,18 +7,18 @@ import {
   CartesianGrid,
   Tooltip,
   Legend
-} from 'recharts';
-import PropTypes from 'prop-types';
-import axios from 'axios';
-import { DatePicker, Button } from 'antd';
-import moment from 'moment';
-import { connect } from 'react-redux';
+} from "recharts";
+import PropTypes from "prop-types";
+import axios from "axios";
+import { DatePicker, Button } from "antd";
+import moment from "moment";
+import { connect } from "react-redux";
 // import _ from 'lodash';
 const { RangePicker } = DatePicker;
-const dateFormat = 'YYYY-MM-DD';
+const dateFormat = "YYYY-MM-DD";
 const today = moment().format(dateFormat);
 const tomorrow = moment()
-  .add(1, 'd')
+  .add(1, "d")
   .format(dateFormat);
 @connect(state => {
   return {
@@ -38,10 +38,15 @@ class ProjectTest extends Component {
     project: PropTypes.object
   };
   componentWillMount() {
-    this.search();
+    this.search({
+      start: moment()
+        .subtract(7, "d")
+        .format("YYYYMMDD"),
+      end: moment().format("YYYYMMDD")
+    });
   }
   async search(params) {
-    let res = await axios.get('/api/testResult/findProjectTestResult', {
+    let res = await axios.get("/api/testResult/findProjectTestResult", {
       params: {
         project_id: this.props.project._id,
         ...params
@@ -72,13 +77,13 @@ class ProjectTest extends Component {
             </div>
           </div>
         ) : (
-          '无最新测试结果'
+          "无最新测试结果"
         )}
-        <h2 className="token-title" style={{ marginTop: '20px' }}>
+        <h2 className="token-title" style={{ marginTop: "20px" }}>
           详细信息
         </h2>
         <div
-          style={{ width: '400px', marginLeft: 'auto', marginRight: 'auto' }}
+          style={{ width: "400px", marginLeft: "auto", marginRight: "auto" }}
         >
           <RangePicker
             onChange={(momentDate, selectDate) => {
@@ -87,8 +92,8 @@ class ProjectTest extends Component {
               });
             }}
             style={{
-              marginRight: '10px',
-              verticalAlign: 'middle'
+              marginRight: "10px",
+              verticalAlign: "middle"
             }}
             defaultValue={[
               moment(today, dateFormat),
@@ -108,7 +113,7 @@ class ProjectTest extends Component {
         </div>
         <div
           className="token"
-          style={{ width: '1300px', marginLeft: 'auto', marginRight: 'auto' }}
+          style={{ width: "1300px", marginLeft: "auto", marginRight: "auto" }}
         >
           {data && data.length > 0 ? (
             <LineChart
@@ -137,7 +142,7 @@ class ProjectTest extends Component {
               />
             </LineChart>
           ) : (
-            <span>无测试结果</span>
+            <span>最近 7 天无测试结果</span>
           )}
         </div>
       </div>
