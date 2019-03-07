@@ -17,8 +17,8 @@ import { connect } from "react-redux";
 const { RangePicker } = DatePicker;
 const dateFormat = "YYYY-MM-DD";
 const today = moment().format(dateFormat);
-const tomorrow = moment()
-  .add(1, "d")
+const aWeekAgo = moment()
+  .subtract(7, "d")
   .format(dateFormat);
 @connect(state => {
   return {
@@ -31,7 +31,7 @@ class ProjectTest extends Component {
     this.state = {
       nearly: {},
       data: [],
-      selectDate: [today, tomorrow]
+      selectDate: [aWeekAgo, today]
     };
   }
   static propTypes = {
@@ -39,10 +39,8 @@ class ProjectTest extends Component {
   };
   componentWillMount() {
     this.search({
-      start: moment()
-        .subtract(7, "d")
-        .format("YYYYMMDD"),
-      end: moment().format("YYYYMMDD")
+      start: aWeekAgo,
+      end: today
     });
   }
   async search(params) {
@@ -95,10 +93,7 @@ class ProjectTest extends Component {
               marginRight: "10px",
               verticalAlign: "middle"
             }}
-            defaultValue={[
-              moment(today, dateFormat),
-              moment(tomorrow, dateFormat)
-            ]}
+            defaultValue={[moment(today).subtract(7, "d"), moment(today)]}
             format={dateFormat}
           />
           <Button
