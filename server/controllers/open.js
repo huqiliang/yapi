@@ -267,9 +267,7 @@ class openController extends baseController {
     };
 
     if (ctx.params.email === true && reportsResult.message.failedNum !== 0) {
-      let autoTestUrl = `${
-        ctx.request.origin
-      }/api/open/run_auto_test?id=${id}&token=${token}&mode=${ctx.params.mode}`;
+      let autoTestUrl = `${ctx.request.origin}/api/open/run_auto_test?id=${id}&token=${token}&mode=${ctx.params.mode}`;
       yapi.commons.sendNotice(projectId, {
         title: `YApi自动化测试报告`,
         content: `
@@ -318,6 +316,9 @@ class openController extends baseController {
       };
       if (item) {
         let result = await this.useSell(this, item);
+        console.log("============shell result========================");
+        console.log(result);
+        console.log("====================================");
         if (result && result.status) {
           let resTestResult = await this.testResult.findSection({
             project_id: item.project_id,
@@ -359,11 +360,7 @@ class openController extends baseController {
       const pyPath = path.join(__dirname, "../../static/jmeter/jmeter.py");
       return new Promise(resolve => {
         let envDomain = item.env ? item.env.domain : "default";
-        let shellpy = `python3 ${pyPath} -u ${envDomain} -g ${
-          item.projectTestPath
-        } -p ${project.basepath}${item.path}.jmx -o ${item.project_id}/${
-          item.id
-        }`;
+        let shellpy = `python3 ${pyPath} -u ${envDomain} -g ${item.projectTestPath} -p ${project.basepath}${item.path}.jmx -o ${item.project_id}/${item.id}`;
 
         console.log("====================================");
         console.log("执行命令:" + shellpy);
@@ -392,6 +389,15 @@ class openController extends baseController {
             console.log(error);
           }
         });
+      });
+    } else {
+      console.log(
+        "=========no interface or project==========================="
+      );
+      console.log("interface:", res, "project:", project);
+      console.log("====================================");
+      return new Promise((resolve, reject) => {
+        resolve({ res, project });
       });
     }
   }
@@ -509,14 +515,17 @@ class openController extends baseController {
   }
 
   async handleScriptTest(interfaceData, response, validRes, requestParams) {
-    
     try {
-      let test = await yapi.commons.runCaseScript({
-        response: response,
-        records: this.records,
-        script: interfaceData.test_script,
-        params: requestParams
-      }, interfaceData.col_id, interfaceData._id);
+      let test = await yapi.commons.runCaseScript(
+        {
+          response: response,
+          records: this.records,
+          script: interfaceData.test_script,
+          params: requestParams
+        },
+        interfaceData.col_id,
+        interfaceData._id
+      );
       if (test.errcode !== 0) {
         test.data.logs.forEach(item => {
           validRes.push({
