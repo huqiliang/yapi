@@ -100,7 +100,7 @@ class Reg extends Component {
               {
                 required: true,
                 message: "请输入正确的公司邮箱",
-                pattern: /^\w+([\.-]?\w+)*@(ipms|ihotel|gcihotel)\.cn$/
+                pattern: /^\w+([\.-]?\w+)*@(ipms|ihotel|gcihotel|greencloud\.com)\.cn$/
               }
             ]
           })(
